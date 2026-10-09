@@ -61,8 +61,6 @@ def immutable_relation(attrs, instance, field):
 
 
 class ScopedPrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField):
-    """Resolve foreign keys only inside the authenticated user's allowed queryset."""
-
     def __init__(self, *, scope, **kwargs):
         self.scope = scope
         super().__init__(**kwargs)
