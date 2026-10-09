@@ -1,0 +1,47 @@
+# Entorno virtual
+Desarrollo/
+venv/
+env/
+.venv/
+ENV/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+build/
+dist/
+*.egg-info/
+
+# Django
+*.log
+db.sqlite3
+db.sqlite3-journal
+/media/
+/staticfiles/
+/static_root/
+
+# Secretos y variables de entorno
+.env
+.env.*
+!.env.example
+*.pem
+
+# Editores e IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Tests y cobertura
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+.tox/
