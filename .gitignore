@@ -21,12 +21,29 @@ db.sqlite3-journal
 /media/
 /staticfiles/
 /static_root/
+backend/media/
+backend/staticfiles/
+
+# Base de datos y respaldos (la estructura de carpetas sí se versiona)
+database/data/*
+!database/data/.gitkeep
+database/backups/*
+!database/backups/.gitkeep
 
 # Secretos y variables de entorno
 .env
 .env.*
 !.env.example
 *.pem
+
+# Frontend (se reserva la estructura; las dependencias y builds no se versionan)
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+frontend/.vite/
+npm-debug.log*
+yarn-error.log*
 
 # Editores e IDE
 .vscode/

@@ -1,0 +1,70 @@
+{
+  "espacio_nombres": "g-computacional.demo.v1",
+  "total_esperado": 100,
+  "clave_demo": "Demo.Ganaderia.2026",
+  "usuarios": [
+    {"clave": "ana", "usuario": "demo_ana_propietaria", "nombres": "Ana", "apellidos": "Rojas", "correo": "ana.demo@g-computacional.local", "telefono": "+573000000001"},
+    {"clave": "bruno", "usuario": "demo_bruno_propietario", "nombres": "Bruno", "apellidos": "Mejia", "correo": "bruno.demo@g-computacional.local", "telefono": "+573000000002"},
+    {"clave": "carla", "usuario": "demo_carla_propietaria", "nombres": "Carla", "apellidos": "Niño", "correo": "carla.demo@g-computacional.local", "telefono": "+573000000003"},
+    {"clave": "diego", "usuario": "demo_diego_administrador", "nombres": "Diego", "apellidos": "Patiño", "correo": "diego.demo@g-computacional.local", "telefono": "+573000000004"},
+    {"clave": "elena", "usuario": "demo_elena_operaria", "nombres": "Elena", "apellidos": "Gomez", "correo": "elena.demo@g-computacional.local", "telefono": "+573000000005"},
+    {"clave": "fabian", "usuario": "demo_fabian_operario", "nombres": "Fabian", "apellidos": "Suarez", "correo": "fabian.demo@g-computacional.local", "telefono": "+573000000006"}
+  ],
+  "fincas": [
+    {"clave": "norte", "nombre": "Finca Demo El Norte", "ubicacion": "Sabana de Bogotá, Cundinamarca", "propietario": "ana"},
+    {"clave": "centro", "nombre": "Finca Demo La Esperanza", "ubicacion": "Valle de Tenza, Boyacá", "propietario": "bruno"},
+    {"clave": "sur", "nombre": "Finca Demo El Mirador", "ubicacion": "Meseta de Popayán, Cauca", "propietario": "carla"}
+  ],
+  "membresias": [
+    {"finca": "norte", "usuario": "diego", "rol": "administrador"},
+    {"finca": "norte", "usuario": "elena", "rol": "operario"},
+    {"finca": "centro", "usuario": "diego", "rol": "administrador"},
+    {"finca": "centro", "usuario": "fabian", "rol": "operario"},
+    {"finca": "sur", "usuario": "elena", "rol": "administrador"},
+    {"finca": "sur", "usuario": "fabian", "rol": "operario"}
+  ],
+  "razas": [
+    {"clave": "brahman", "nombre": "Brahman (demo)"},
+    {"clave": "gyr", "nombre": "Gyr (demo)"},
+    {"clave": "normando", "nombre": "Normando (demo)"},
+    {"clave": "holstein", "nombre": "Holstein (demo)"}
+  ],
+  "potreros": [
+    {"clave": "norte-a", "finca": "norte", "nombre": "Potrero Demo Alto", "bovinos": 4},
+    {"clave": "norte-b", "finca": "norte", "nombre": "Potrero Demo Vega Baja", "bovinos": 4},
+    {"clave": "centro-a", "finca": "centro", "nombre": "Potrero Demo Mangón", "bovinos": 4},
+    {"clave": "centro-b", "finca": "centro", "nombre": "Potrero Demo Guadual", "bovinos": 4},
+    {"clave": "sur-a", "finca": "sur", "nombre": "Potrero Demo Loma Verde", "bovinos": 4},
+    {"clave": "sur-b", "finca": "sur", "nombre": "Potrero Demo Quebrada", "bovinos": 4}
+  ],
+  "dispositivos": [
+    {"clave": "ana-tablet", "propietario": "ana", "modelo": "Tablet Demo T10", "sistema_operativo": "Android 14"},
+    {"clave": "bruno-movil", "propietario": "bruno", "modelo": "Movil Demo G52", "sistema_operativo": "Android 13"},
+    {"clave": "carla-movil", "propietario": "carla", "modelo": "Movil Demo A34", "sistema_operativo": "Android 14"},
+    {"clave": "diego-movil", "propietario": "diego", "modelo": "Movil Demo P60", "sistema_operativo": "Android 15"},
+    {"clave": "elena-movil", "propietario": "elena", "modelo": "Movil Demo M14", "sistema_operativo": "Android 13"}
+  ],
+  "modelos_ia": [
+    {"clave": "v1", "version": "demo-morfometria-1.0", "calibracion": "Calibración demo con 500 bovinos de referencia", "activo": true},
+    {"clave": "v2", "version": "demo-morfometria-1.1", "calibracion": "Calibración demo ajustada para razas cebuinas", "activo": true}
+  ],
+  "tipos_medida": [
+    {"clave": "perimetro", "nombre": "Perímetro torácico (demo)", "unidad": "cm"},
+    {"clave": "longitud", "nombre": "Longitud corporal (demo)", "unidad": "cm"},
+    {"clave": "altura", "nombre": "Altura a la cruz (demo)", "unidad": "cm"},
+    {"clave": "ancho", "nombre": "Ancho de cadera (demo)", "unidad": "cm"}
+  ],
+  "perfil_bovinos": {
+    "categorias_productivas": ["Cría", "Levante", "Ceba", "Vaca de leche"],
+    "estados_fisiologicos": ["Vacía", "Preñada", "Lactante", ""],
+    "desactivados": [
+      {"indice_arete": 7, "finca": "norte", "estado": "vendido", "motivo": "Venta demostrativa en feria regional"},
+      {"indice_arete": 8, "finca": "sur", "estado": "muerto", "motivo": "Baja demostrativa por causa natural"}
+    ]
+  },
+  "plan": {
+    "mediciones": 20,
+    "medidas_morfometricas": 12,
+    "pesajes": 8
+  }
+}
