@@ -50,6 +50,7 @@ class Invitacion(ModeloBaseUuid):
 
     finca = models.ForeignKey(Finca, on_delete=models.CASCADE, related_name="invitaciones")
     telefono = models.CharField(max_length=20)
+    email = models.EmailField()
     rol = models.CharField(max_length=20, choices=Membresia.Rol.choices)
     token = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     estado = models.CharField(max_length=10, choices=Estado.choices, default=Estado.PENDIENTE)

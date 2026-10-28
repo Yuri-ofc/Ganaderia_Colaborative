@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',
     'rest_framework',
     'rest_framework.authtoken',
     'apps.common',
@@ -44,6 +45,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -146,13 +148,28 @@ REST_FRAMEWORK = {
 }
 
 
+# --- CORS -------------------------------------------------------------------
+# En desarrollo se permiten todos los orígenes; en producción se usa la lista
+# definida en la variable de entorno CORS_ALLOWED_ORIGINS.
+if DEBUG:
+    CORS_ALLOW_ALL_ORIGINS = True
+else:
+    CORS_ALLOWED_ORIGINS = leer_lista('CORS_ALLOWED_ORIGINS', [])
+CORS_ALLOW_CREDENTIALS = True
+
+
 EMAIL_BACKEND = leer_texto('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
 EMAIL_HOST = leer_texto('EMAIL_HOST', '')
 EMAIL_PORT = leer_entero('EMAIL_PORT', 25)
 EMAIL_HOST_USER = leer_texto('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = leer_texto('EMAIL_HOST_PASSWORD', '')
 EMAIL_USE_TLS = leer_bool('EMAIL_USE_TLS', False)
-DEFAULT_FROM_EMAIL = leer_texto('DEFAULT_FROM_EMAIL', 'no-reply@g-computacional.local')
+# Si no se define, cae al mismo EMAIL_HOST_USER: con Gmail, el remitente debe
+# coincidir con la cuenta autenticada o el envío se rechaza/reescribe.
+DEFAULT_FROM_EMAIL = leer_texto('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER or 'no-reply@g-computacional.local')
+
+# URL base del frontend, usada para armar enlaces dentro de los correos (ej. invitaciones).
+FRONTEND_URL = leer_texto('FRONTEND_URL', 'http://localhost:5173')
 
 
 if not DEBUG:

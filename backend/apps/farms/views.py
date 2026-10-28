@@ -1,5 +1,7 @@
 from uuid import UUID
 
+from django.conf import settings
+from django.core.mail import send_mail
 from django.db import transaction
 from django.utils import timezone
 from rest_framework import status, viewsets
@@ -12,6 +14,35 @@ from apps.common.views import MixinBorradoLogico, parametro_uuid
 
 from .models import Finca, Invitacion, Membresia
 from .serializers import SerializerFinca, SerializerInvitacion, SerializerMembresia
+
+ETIQUETA_ROL = {
+    Membresia.Rol.ADMINISTRADOR: "administrador",
+    Membresia.Rol.OPERARIO: "operario",
+}
+
+
+def enviar_correo_invitacion(invitacion):
+    """Envía al correo del invitado el enlace y el código para unirse a la finca.
+
+    Si el backend de correo no está configurado (sin usuario SMTP) no se
+    intenta el envío, para no romper el flujo en entornos de desarrollo.
+    """
+    if not settings.EMAIL_HOST_USER:
+        return
+    enlace = f"{settings.FRONTEND_URL}/invitaciones?token={invitacion.token}"
+    rol = ETIQUETA_ROL.get(invitacion.rol, invitacion.rol)
+    asunto = f"Invitación a la finca {invitacion.finca.nombre}"
+    cuerpo = (
+        f"Te invitaron como {rol} a la finca \"{invitacion.finca.nombre}\" "
+        "en Ganadería de Precisión.\n\n"
+        f"Para aceptar, abre este enlace e inicia sesión (o regístrate si aún no tienes cuenta):\n"
+        f"{enlace}\n\n"
+        f"Si el enlace no funciona, usa el código manualmente: {invitacion.token}\n\n"
+        f"Esta invitación vence el {invitacion.expira_en:%d/%m/%Y %H:%M}."
+    )
+    send_mail(
+        asunto, cuerpo, settings.DEFAULT_FROM_EMAIL, [invitacion.email], fail_silently=True,
+    )
 
 
 class VistaFincas(MixinBorradoLogico, viewsets.ModelViewSet):
@@ -55,6 +86,10 @@ class VistaInvitaciones(MixinBorradoLogico, viewsets.ModelViewSet):
         if finca_id:
             consulta = consulta.filter(finca_id=finca_id)
         return consulta.order_by("-creado_en", "-id")
+
+    def perform_create(self, serializer):
+        invitacion = serializer.save()
+        enviar_correo_invitacion(invitacion)
 
     def perform_destroy(self, instancia):
         if instancia.estado != Invitacion.Estado.PENDIENTE:

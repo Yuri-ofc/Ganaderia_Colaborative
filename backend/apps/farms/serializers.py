@@ -17,10 +17,21 @@ Usuario = get_user_model()
 
 
 class SerializerFinca(serializers.ModelSerializer):
+    mi_rol = serializers.SerializerMethodField()
+
     class Meta:
         model = Finca
-        fields = ("id", "propietario", "nombre", "ubicacion", "creado_en", "actualizado_en")
+        fields = ("id", "propietario", "nombre", "ubicacion", "mi_rol", "creado_en", "actualizado_en")
         read_only_fields = ("id", "propietario", "creado_en", "actualizado_en")
+
+    def get_mi_rol(self, finca):
+        usuario = self.context["request"].user
+        if finca.propietario_id == usuario.pk:
+            return "propietario"
+        membresia = Membresia.objects.filter(
+            finca=finca, usuario=usuario, eliminado_en__isnull=True
+        ).values_list("rol", flat=True).first()
+        return membresia
 
     def validate(self, atributos):
         usuario = usuario_actual(self)
@@ -77,7 +88,7 @@ class SerializerInvitacion(serializers.ModelSerializer):
     class Meta:
         model = Invitacion
         fields = (
-            "id", "finca", "telefono", "rol", "token", "estado", "expira_en",
+            "id", "finca", "telefono", "email", "rol", "token", "estado", "expira_en",
             "creado_por", "aceptado_por", "aceptado_en", "creado_en", "actualizado_en",
         )
         read_only_fields = (
