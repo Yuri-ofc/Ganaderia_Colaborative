@@ -2,6 +2,7 @@ from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
 from rest_framework import serializers
+from rest_framework.exceptions import PermissionDenied
 
 from apps.common.serializers import (
     CampoRelacionadoConAlcance,
@@ -84,10 +85,15 @@ class SerializerBovino(serializers.ModelSerializer):
 
     def validate(self, atributos):
         finca = self.instance.finca if self.instance else atributos["finca"]
-        exigir_acceso_finca(self, finca)
         if self.instance:
+            # RF-09: editar datos base de un bovino ya creado es exclusivo de
+            # propietario y administrador (el operario solo puede crearlos).
+            exigir_acceso_finca(self, finca, administrar=True)
             relacion_inmutable(atributos, self.instance, "finca")
             relacion_inmutable(atributos, self.instance, "potrero")
+        else:
+            # RF-06: propietario, administrador y operario pueden crear bovinos.
+            exigir_acceso_finca(self, finca)
         potrero = atributos.get("potrero", getattr(self.instance, "potrero", None))
         if potrero.finca_id != finca.pk:
             raise serializers.ValidationError({"potrero": "El potrero debe pertenecer a la misma finca."})
@@ -122,7 +128,10 @@ class SerializerMovimientoPotrero(serializers.ModelSerializer):
 
     def validate(self, atributos):
         bovino = self.instance.bovino if self.instance else atributos["bovino"]
-        exigir_acceso_finca(self, bovino.finca)
+        actor = exigir_acceso_finca(self, bovino.finca)
+        # RF-10: solo el propietario de la finca puede cambiar el lote/potrero de un bovino.
+        if bovino.finca.propietario_id != actor.pk:
+            raise PermissionDenied("Solo el propietario puede cambiar el lote del bovino.")
         if self.instance:
             for campo in ("bovino", "potrero"):
                 relacion_inmutable(atributos, self.instance, campo)

@@ -1,3 +1,5 @@
+from django.contrib.auth import get_user_model
+from django.db.models import Q
 from rest_framework import generics, status
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.permissions import AllowAny
@@ -7,7 +9,7 @@ from rest_framework.views import APIView
 
 from apps.common.permissions import PermisoUsuarioActivo
 
-from .serializers import SerializerInicioSesion, SerializerRegistro
+from .serializers import SerializerInicioSesion, SerializerPerfilUsuario, SerializerRegistro
 
 
 class VistaRegistro(generics.CreateAPIView):
@@ -34,3 +36,38 @@ class VistaCierreSesion(APIView):
             )
         solicitud.auth.delete()
         return Response({"detail": "Sesión cerrada."})
+
+
+class VistaPerfilUsuario(APIView):
+    """Expone únicamente el perfil del usuario autenticado actual."""
+
+    permission_classes = (PermisoUsuarioActivo,)
+
+    def get(self, solicitud):
+        return Response(SerializerPerfilUsuario(solicitud.user).data)
+
+
+class VistaBuscarUsuario(APIView):
+    """Busca un usuario activo por nombre de usuario o teléfono.
+
+    Parámetro GET: ``q`` (mínimo 3 caracteres).
+    Devuelve hasta 10 coincidencias: id, username, telefono.
+    No expone email ni datos sensibles.
+    El usuario buscado no puede ser el mismo que hace la búsqueda.
+    """
+
+    permission_classes = (PermisoUsuarioActivo,)
+
+    def get(self, solicitud):
+        Usuario = get_user_model()
+        q = solicitud.query_params.get("q", "").strip()
+        if len(q) < 3:
+            return Response([])
+        resultados = (
+            Usuario.objects
+            .filter(eliminado_en__isnull=True, is_active=True)
+            .filter(Q(username__icontains=q) | Q(telefono__icontains=q))
+            .exclude(pk=solicitud.user.pk)
+            .values("id", "username", "telefono")[:10]
+        )
+        return Response(list(resultados))
