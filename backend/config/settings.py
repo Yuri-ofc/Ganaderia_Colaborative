@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'apps.common',
     'apps.accounts',
+    'apps.rbac',
     'apps.farms',
     'apps.cattle',
     'apps.measurements',

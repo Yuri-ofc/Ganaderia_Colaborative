@@ -47,6 +47,7 @@ def enviar_correo_invitacion(invitacion):
 
 class VistaFincas(MixinBorradoLogico, viewsets.ModelViewSet):
     serializer_class = SerializerFinca
+    recurso_requerido = "FINC"
 
     def get_queryset(self):
         return fincas_accesibles(self.request.user).select_related("propietario").order_by("nombre", "id")
@@ -59,6 +60,7 @@ class VistaFincas(MixinBorradoLogico, viewsets.ModelViewSet):
 
 class VistaMembresias(MixinBorradoLogico, viewsets.ModelViewSet):
     serializer_class = SerializerMembresia
+    recurso_requerido = "MIEM"
 
     def get_queryset(self):
         consulta = Membresia.objects.filter(
@@ -77,6 +79,7 @@ class VistaMembresias(MixinBorradoLogico, viewsets.ModelViewSet):
 
 class VistaInvitaciones(MixinBorradoLogico, viewsets.ModelViewSet):
     serializer_class = SerializerInvitacion
+    recurso_requerido = "INVT"
 
     def get_queryset(self):
         consulta = Invitacion.objects.filter(

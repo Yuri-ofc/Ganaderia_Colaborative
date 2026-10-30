@@ -18,6 +18,7 @@ class VistaCambiosSincronizacion(
     viewsets.GenericViewSet,
 ):
     serializer_class = SerializerCambioSincronizacion
+    recurso_requerido = "SYNC"
 
     def get_queryset(self):
         consulta = CambioSincronizacion.objects.filter(

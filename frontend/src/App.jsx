@@ -7,9 +7,11 @@ import Fincas from './pages/Fincas';
 import Bovinos from './pages/Bovinos';
 import Membresias from './pages/Membresias';
 import Invitaciones from './pages/Invitaciones';
+import RbacAdmin from './pages/RbacAdmin';
 import DashboardLayout from './components/DashboardLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 import RoleRoute from './components/RoleRoute';
+import ResourceRoute from './components/ResourceRoute';
 import { AuthProvider } from './context/AuthContext';
 
 // Reglas de acceso por rol (RF-04, RNF-11): /miembros e /invitaciones solo las
@@ -87,6 +89,14 @@ function App() {
                 <Invitaciones />
               </RoleRoute>
             }
+          />
+          <Route
+            path="/permisos"
+            element={<Navigate to="/rbac" replace />}
+          />
+          <Route
+            path="/rbac"
+            element={<ResourceRoute recurso="RBAC"><RbacAdmin /></ResourceRoute>}
           />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />

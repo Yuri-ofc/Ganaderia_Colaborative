@@ -16,6 +16,10 @@ const paths = {
   trash: <><path d="M4 7h16M10 11v5m4-5v5M9 7l1-3h4l1 3M6 7l1 14h10l1-14" /></>,
   chevron: <path d="m8 10 4 4 4-4" />,
   cattle: <><path d="M12 3c-2.5 0-4 2-4 4" /><path d="M12 3c2.5 0 4 2 4 4" /><circle cx="12" cy="13" r="7" /><circle cx="9.5" cy="12" r=".6" fill="currentColor" stroke="none" /><circle cx="14.5" cy="12" r=".6" fill="currentColor" stroke="none" /><path d="M10 16h4" /></>,
+  shield: <><path d="M12 3 5 6v6c0 5 3 8.5 7 9 4-.5 7-4 7-9V6l-7-3Z" /><path d="m9 12 2 2 4-4" /></>,
+  check: <path d="M5 12l4 4 10-10" />,
+  dash: <path d="M5 12h14" />,
+  alert: <><path d="M12 3 2 20h20L12 3Z" /><path d="M12 10v4" /><circle cx="12" cy="17" r=".6" fill="currentColor" stroke="none" /></>,
 };
 
 export default function Icon({ name, className = 'icon', title }) {

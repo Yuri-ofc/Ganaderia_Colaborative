@@ -84,6 +84,9 @@ class SerializerMembresia(serializers.ModelSerializer):
 class SerializerInvitacion(serializers.ModelSerializer):
     finca = CampoRelacionadoConAlcance(queryset=Finca.objects.all(), alcance=fincas_administradas)
     estado = serializers.ChoiceField(choices=Invitacion.Estado.choices, required=False)
+    # RF-04 establece el celular como canal principal; el correo es un
+    # complemento opcional para el envío de la invitación.
+    email = serializers.EmailField(required=False, allow_blank=True)
 
     class Meta:
         model = Invitacion

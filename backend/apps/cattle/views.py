@@ -18,6 +18,7 @@ from .serializers import (
 
 class VistaRazas(MixinEscrituraPersonal, MixinBorradoLogico, viewsets.ModelViewSet):
     serializer_class = SerializerRaza
+    recurso_requerido = "RAZA"
     filter_backends = (filters.SearchFilter,)
     search_fields = ("nombre",)
 
@@ -32,6 +33,7 @@ class VistaRazas(MixinEscrituraPersonal, MixinBorradoLogico, viewsets.ModelViewS
 
 class VistaPotreros(MixinBorradoLogico, viewsets.ModelViewSet):
     serializer_class = SerializerPotrero
+    recurso_requerido = "LOTE"
 
     def get_queryset(self):
         consulta = Potrero.objects.filter(
@@ -51,6 +53,7 @@ class VistaPotreros(MixinBorradoLogico, viewsets.ModelViewSet):
 
 class VistaBovinos(MixinBorradoLogico, viewsets.ModelViewSet):
     serializer_class = SerializerBovino
+    recurso_requerido = "BOVI"
     filter_backends = (filters.SearchFilter, filters.OrderingFilter)
     search_fields = ("arete", "raza__nombre", "potrero__nombre")
     ordering_fields = ("arete", "creado_en", "fecha_nacimiento_estimada")
@@ -125,6 +128,7 @@ class VistaMovimientosPotrero(
     viewsets.GenericViewSet,
 ):
     serializer_class = SerializerMovimientoPotrero
+    recurso_requerido = "LOTE"
     http_method_names = ("get", "post", "patch", "head", "options")
 
     def get_queryset(self):
