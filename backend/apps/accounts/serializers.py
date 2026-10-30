@@ -9,10 +9,25 @@ Usuario = get_user_model()
 class SerializerPerfilUsuario(serializers.ModelSerializer):
     """Representación mínima del usuario que inició sesión."""
 
+    roles = serializers.SerializerMethodField()
+    recursos = serializers.SerializerMethodField()
+
     class Meta:
         model = Usuario
-        fields = ("id", "username", "email", "telefono")
+        fields = ("id", "username", "email", "telefono", "is_superuser", "roles", "recursos")
         read_only_fields = fields
+
+    def get_roles(self, usuario):
+        from apps.rbac.serializers import roles_y_recursos_usuario
+
+        roles, _ = roles_y_recursos_usuario(usuario)
+        return [rol.Rol_nombre for rol in roles]
+
+    def get_recursos(self, usuario):
+        from apps.rbac.serializers import roles_y_recursos_usuario
+
+        _, recursos = roles_y_recursos_usuario(usuario)
+        return recursos
 
 
 class SerializerRegistro(serializers.ModelSerializer):
@@ -43,14 +58,14 @@ class SerializerRegistro(serializers.ModelSerializer):
 
 
 class SerializerInicioSesion(serializers.Serializer):
-    """Acepta ``email`` + ``password`` y devuelve el usuario autenticado.
+    """Acepta ``email`` o ``username`` junto con ``password``.
 
-    El frontend envía el campo *email* en lugar de *username*, por lo que
-    se busca primero el usuario por email para obtener su username y
-    después se autentica con las credenciales estándar de Django.
+    El frontend usa correo electrónico; se conserva el nombre de usuario
+    para compatibilidad con clientes existentes de la API.
     """
 
-    email = serializers.EmailField(label="Correo electrónico")
+    email = serializers.EmailField(label="Correo electrónico", required=False)
+    username = serializers.CharField(label="Usuario", required=False)
     password = serializers.CharField(
         label="Contraseña",
         style={"input_type": "password"},
@@ -59,11 +74,15 @@ class SerializerInicioSesion(serializers.Serializer):
 
     def validate(self, atributos):
         email = atributos.get("email")
+        username = atributos.get("username")
         password = atributos.get("password")
 
-        # Buscar el username asociado al email
+        if not email and not username:
+            raise serializers.ValidationError({"detail": "Indique correo electrónico o usuario."})
+        if email and username:
+            raise serializers.ValidationError({"detail": "Use correo electrónico o usuario, no ambos."})
         try:
-            usuario_obj = Usuario.objects.get(email=email)
+            usuario_obj = Usuario.objects.get(email__iexact=email) if email else Usuario.objects.get(username=username)
         except Usuario.DoesNotExist:
             raise serializers.ValidationError(
                 {"detail": "Credenciales inválidas."}, code="authorization"

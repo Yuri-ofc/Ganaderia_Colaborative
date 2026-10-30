@@ -26,8 +26,20 @@ class PruebaApi(APITestCase):
         super().setUp()
         cache.clear()
 
-    def crear_usuario(self, nombre, *, clave=CLAVE, **extra):
-        return Usuario.objects.create_user(username=nombre, password=clave, **extra)
+    def crear_usuario(self, nombre, *, clave=CLAVE, con_permisos_rbac=True, **extra):
+        usuario = Usuario.objects.create_user(username=nombre, password=clave, **extra)
+        # Las pruebas heredadas se ocupan del aislamiento de finca y no de
+        # RBAC. Se les da un rol de fixture con todos los recursos para que
+        # continúen verificando esa capa. Las pruebas RBAC lo desactivan.
+        if con_permisos_rbac:
+            from apps.rbac.models import Recurso, Rol, UsuarioHasRol
+
+            codigos = ("RBAC", "FINC", "MIEM", "INVT", "RAZA", "LOTE", "BOVI", "DISP", "MODI", "TIPO", "MEDI", "PESA", "RESP", "SYNC")
+            recursos = [Recurso.objects.get_or_create(nombre=codigo)[0] for codigo in codigos]
+            rol, _ = Rol.objects.get_or_create(Rol_nombre="TEST")
+            rol.recursos.set(recursos)
+            UsuarioHasRol.objects.get_or_create(usuario=usuario, rol=rol)
+        return usuario
 
     def crear_finca(self, propietario, nombre=None, **extra):
         return Finca.objects.create(

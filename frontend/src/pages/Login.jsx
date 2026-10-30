@@ -73,7 +73,9 @@ export default function Login() {
     setError('');
     setLoading(true);
     try {
-      const response = await api.post('/auth/token/', { email, password });
+      const identifier = email.trim();
+      const credentials = identifier.includes('@') ? { email: identifier, password } : { username: identifier, password };
+      const response = await api.post('/auth/token/', credentials);
       await saveToken(response.data.token);
       navigate(await getInitialDestination(), { replace: true });
     } catch (err) {
@@ -123,12 +125,12 @@ export default function Login() {
           </header>
           {error && <p className="form-message is-error" role="alert">{error}</p>}
           <label>
-            Correo electrónico
+            Correo electrónico o usuario
             <input
-              type="email"
-              autoComplete="email"
+              type="text"
+              autoComplete="username"
               required
-              placeholder="nombre@correo.com"
+              placeholder="nombre@correo.com o usuario"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />

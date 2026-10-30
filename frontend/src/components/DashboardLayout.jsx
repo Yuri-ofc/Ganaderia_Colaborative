@@ -39,7 +39,10 @@ export default function DashboardLayout() {
     : null;
 
   const itemsVisibles = itemsSecundarios.filter((item) => item.rolesPermitidos.includes(rolActivo));
-  const todosLosItems = resumenItem ? [resumenItem, ...itemsVisibles] : itemsVisibles;
+  const itemRbac = (user?.is_superuser || user?.recursos?.includes('RBAC'))
+    ? { to: '/rbac', label: 'Control de acceso', icon: 'shield', end: true }
+    : null;
+  const todosLosItems = [...(resumenItem ? [resumenItem] : []), ...itemsVisibles, ...(itemRbac ? [itemRbac] : [])];
 
   const currentTitle = todosLosItems.find((item) => location.pathname === item.to)?.label || 'Ganadería';
 

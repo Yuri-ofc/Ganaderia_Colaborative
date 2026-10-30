@@ -14,6 +14,7 @@ class VistaRespaldos(
     viewsets.GenericViewSet,
 ):
     serializer_class = SerializerRespaldo
+    recurso_requerido = "RESP"
 
     def get_queryset(self):
         consulta = Respaldo.objects.filter(

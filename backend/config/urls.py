@@ -6,6 +6,7 @@ from apps.common.views import VistaRaizApi
 api_v1_patterns = [
     path("", VistaRaizApi.as_view(), name="api-root"),
     path("auth/", include("apps.accounts.urls")),
+    path("rbac/", include("apps.rbac.urls")),
     path("", include("apps.farms.urls")),
     path("", include("apps.cattle.urls")),
     path("", include("apps.measurements.urls")),
