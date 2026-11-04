@@ -7,6 +7,7 @@ import {
   cancelInvitacion,
   acceptInvitacion,
 } from '../services/farmService';
+import { useAuth } from '../context/AuthContext';
 
 function Modal({ open, onClose, title, children }) {
   if (!open) return null;
@@ -32,6 +33,7 @@ const estadoLabels = {
 };
 
 export default function Invitaciones() {
+  const { loadProfile } = useAuth();
   const [fincas, setFincas] = useState([]);
   const [selectedFinca, setSelectedFinca] = useState('');
   const [invitaciones, setInvitaciones] = useState([]);
@@ -60,18 +62,19 @@ export default function Invitaciones() {
     }
   }, []);
 
+  const cargarFincasPropias = () => getFincas()
+    .then((res) => {
+      const list = res.data.results || res.data;
+      // RF-04: solo el propietario invita. Si una finca llega con otro
+      // mi_rol (p. ej. eres operario en otra), el backend la devolvería
+      // vacía de todas formas; no la ofrecemos en el selector.
+      const propias = list.filter((f) => f.mi_rol === 'propietario');
+      setFincas(propias);
+      if (propias.length > 0) setSelectedFinca((prev) => prev || propias[0].id);
+    });
+
   useEffect(() => {
-    getFincas()
-      .then((res) => {
-        const list = res.data.results || res.data;
-        // RF-04: solo el propietario invita. Si una finca llega con otro
-        // mi_rol (p. ej. eres operario en otra), el backend la devolvería
-        // vacía de todas formas; no la ofrecemos en el selector.
-        const propias = list.filter((f) => f.mi_rol === 'propietario');
-        setFincas(propias);
-        if (propias.length > 0) setSelectedFinca(propias[0].id);
-      })
-      .finally(() => setLoading(false));
+    cargarFincasPropias().finally(() => setLoading(false));
   }, []);
 
   const fetchInvitaciones = () => {
@@ -142,6 +145,11 @@ export default function Invitaciones() {
       const res = await acceptInvitacion(tokenAccept);
       setAcceptMsg(`✅ ¡Invitación aceptada! Finca: ${res.data.finca_id}`);
       setTokenAccept('');
+      // Aceptar una invitación cambia fincas, rol efectivo y recursos:
+      // se refresca la sesión completa para que el menú y las rutas queden
+      // habilitados sin recargar el navegador.
+      await loadProfile();
+      await cargarFincasPropias();
     } catch (err) {
       const data = err.response?.data;
       if (data) {

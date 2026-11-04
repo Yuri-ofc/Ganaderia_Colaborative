@@ -76,7 +76,7 @@ export default function Login() {
       const identifier = email.trim();
       const credentials = identifier.includes('@') ? { email: identifier, password } : { username: identifier, password };
       const response = await api.post('/auth/token/', credentials);
-      await saveToken(response.data.token);
+      await saveToken(response.data.token, remember);
       navigate(await getInitialDestination(), { replace: true });
     } catch (err) {
       const data = err.response?.data;

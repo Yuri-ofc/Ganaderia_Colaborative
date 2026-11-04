@@ -7,7 +7,9 @@ const api = axios.create({
 
 // Interceptor: agrega el token a cada petición
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('authToken');
+  // El token vive en localStorage si se marcó "Recordarme" y en sessionStorage
+  // si la sesión debe durar solo mientras la pestaña siga abierta.
+  const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
   if (token) {
     config.headers.Authorization = `Token ${token}`;
   }
@@ -20,6 +22,7 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem('authToken');
+      sessionStorage.removeItem('authToken');
       window.location.href = '/';
     }
     return Promise.reject(error);

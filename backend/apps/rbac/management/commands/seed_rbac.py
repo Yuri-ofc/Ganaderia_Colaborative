@@ -25,4 +25,21 @@ class Command(BaseCommand):
         for codigo, permisos in PERMISOS_POR_ROL.items():
             rol, _ = Rol.objects.get_or_create(Rol_nombre=codigo)
             rol.recursos.set([recursos[permiso] for permiso in permisos])
-        self.stdout.write(self.style.SUCCESS("RBAC actualizado: 4 roles y 13 recursos administrados; no se crearon credenciales."))
+
+        # Los códigos retirados (DISP, MODI, RAZA, TIPO) pueden seguir en bases
+        # antiguas. Solo se eliminan si ningún rol los usa: si alguien los
+        # asignó a un rol personalizado, la decisión es del administrador.
+        obsoletos = [
+            recurso
+            for recurso in Recurso.objects.exclude(nombre__in=RECURSOS)
+            if not recurso.roles.exists()
+        ]
+        for recurso in obsoletos:
+            recurso.delete()
+
+        detalle = f"{len(PERMISOS_POR_ROL)} roles y {len(RECURSOS)} recursos administrados"
+        if obsoletos:
+            detalle += f"; {len(obsoletos)} recurso(s) obsoleto(s) sin uso eliminado(s)"
+        self.stdout.write(
+            self.style.SUCCESS(f"RBAC actualizado: {detalle}; no se crearon credenciales.")
+        )

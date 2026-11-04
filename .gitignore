@@ -62,3 +62,6 @@ Thumbs.db
 htmlcov/
 .pytest_cache/
 .tox/
+
+# Herramientas de diseño locales (no forman parte del producto)
+.taste-skill/

@@ -138,7 +138,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'accounts.Usuario'
 
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': ['rest_framework.authentication.TokenAuthentication'],
+    'DEFAULT_AUTHENTICATION_CLASSES': ['apps.accounts.authentication.TokenAutenticacion'],
     'DEFAULT_PERMISSION_CLASSES': ['apps.common.permissions.PermisoUsuarioActivo'],
     'DEFAULT_RENDERER_CLASSES': ['rest_framework.renderers.JSONRenderer'],
     'DEFAULT_PARSER_CLASSES': ['rest_framework.parsers.JSONParser'],
@@ -149,6 +149,9 @@ REST_FRAMEWORK = {
         'registration': leer_texto('API_THROTTLE_REGISTRATION', '5/hour'),
     },
 }
+
+# Días que un token de API sigue siendo válido. 0 lo desactiva.
+API_TOKEN_TTL_DIAS = leer_entero('API_TOKEN_TTL_DIAS', 30)
 
 
 # --- CORS -------------------------------------------------------------------
