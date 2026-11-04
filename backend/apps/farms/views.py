@@ -48,6 +48,19 @@ def enviar_correo_invitacion(invitacion):
 class VistaFincas(MixinBorradoLogico, viewsets.ModelViewSet):
     serializer_class = SerializerFinca
     recurso_requerido = "FINC"
+    # Una cuenta sin finca puede ver su lista vacía y crear la primera; la
+    # excepción se evalúa centralmente en apps.rbac.services.
+    permite_arranque_sin_recurso = True
+    # README.md, "Reglas de acceso": solo el propietario altera una finca.
+    # Crear la primera finca es onboarding de cualquier cuenta autenticada.
+    recursos_por_accion = {"create": None}
+    roles_permitidos_por_accion = {
+        "list": ("PROP", "ADMI", "OPER"),
+        "retrieve": ("PROP", "ADMI", "OPER"),
+        "update": ("PROP",),
+        "partial_update": ("PROP",),
+        "destroy": ("PROP",),
+    }
 
     def get_queryset(self):
         return fincas_accesibles(self.request.user).select_related("propietario").order_by("nombre", "id")
@@ -61,6 +74,11 @@ class VistaFincas(MixinBorradoLogico, viewsets.ModelViewSet):
 class VistaMembresias(MixinBorradoLogico, viewsets.ModelViewSet):
     serializer_class = SerializerMembresia
     recurso_requerido = "MIEM"
+    roles_permitidos_por_accion = {
+        "list": ("PROP", "ADMI"), "retrieve": ("PROP", "ADMI"),
+        "create": ("PROP", "ADMI"), "update": ("PROP", "ADMI"),
+        "partial_update": ("PROP", "ADMI"), "destroy": ("PROP", "ADMI"),
+    }
 
     def get_queryset(self):
         consulta = Membresia.objects.filter(
@@ -80,6 +98,14 @@ class VistaMembresias(MixinBorradoLogico, viewsets.ModelViewSet):
 class VistaInvitaciones(MixinBorradoLogico, viewsets.ModelViewSet):
     serializer_class = SerializerInvitacion
     recurso_requerido = "INVT"
+    # Aceptar una invitación es una operación personal: INVA permite hacerlo
+    # sin conceder al operario lectura ni administración de invitaciones.
+    recursos_por_accion = {"aceptar": None}
+    roles_permitidos_por_accion = {
+        "list": ("PROP", "ADMI"), "retrieve": ("PROP", "ADMI"),
+        "create": ("PROP", "ADMI"), "update": ("PROP", "ADMI"),
+        "partial_update": ("PROP", "ADMI"), "destroy": ("PROP", "ADMI"),
+    }
 
     def get_queryset(self):
         consulta = Invitacion.objects.filter(

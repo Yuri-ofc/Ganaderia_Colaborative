@@ -7,9 +7,10 @@ const roleCopy = {
   propietario: { title: 'Tus fincas', intro: 'Tienes control completo sobre los espacios que creaste.', action: 'Crear finca' },
   administrador: { title: 'Fincas administradas', intro: 'Coordina el equipo y las invitaciones de las fincas que administras.', action: 'Ver equipo' },
   operario: { title: 'Fincas asignadas', intro: 'Consulta las fincas a las que tienes acceso y el trabajo disponible.', action: 'Ver fincas' },
+  superadmin: { title: 'Superadministración', intro: 'Supervisa las fincas y la configuración de acceso del sistema.', action: 'Ver fincas' },
 };
 
-const roleLabel = { propietario: 'Propietario', administrador: 'Administrador', operario: 'Operario' };
+const roleLabel = { propietario: 'Propietario', administrador: 'Administrador', operario: 'Operario', superadmin: 'Superadmin' };
 
 export default function Dashboard({ audience = 'operario' }) {
   const [fincas, setFincas] = useState([]);
@@ -51,6 +52,7 @@ export default function Dashboard({ audience = 'operario' }) {
           <Link to="/fincas"><Icon name="farm" /><span><strong>{audience === 'propietario' ? 'Configura tus fincas' : 'Consulta las fincas'}</strong><small>Nombre, ubicación y acceso.</small></span><Icon name="arrow" /></Link>
           {audience !== 'operario' && <Link to="/miembros"><Icon name="people" /><span><strong>Organiza el equipo</strong><small>Asigna roles dentro de cada finca.</small></span><Icon name="arrow" /></Link>}
           {audience !== 'operario' && <Link to="/invitaciones"><Icon name="mail" /><span><strong>Envía invitaciones</strong><small>Incorpora a nuevos colaboradores.</small></span><Icon name="arrow" /></Link>}
+          {audience === 'superadmin' && <Link to="/rbac"><Icon name="shield" /><span><strong>Controla el acceso</strong><small>Administra roles y recursos globales.</small></span><Icon name="arrow" /></Link>}
         </div>
       </aside>
     </div>

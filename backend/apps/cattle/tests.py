@@ -232,8 +232,7 @@ class PruebasPotrerosYMovimientos(AyudasBovinos, PruebaApi):
         respuesta = self.client.post(
             reverse("lot-list"), {"finca": str(self.finca.pk), "nombre": "Potrero Nuevo"}, format="json"
         )
-        self.assertEqual(respuesta.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("finca", respuesta.json())
+        self.assertEqual(respuesta.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_los_nombres_de_potrero_son_unicos_por_finca(self):
         self.autenticar(self.mayordoma)

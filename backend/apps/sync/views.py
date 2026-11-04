@@ -19,6 +19,10 @@ class VistaCambiosSincronizacion(
 ):
     serializer_class = SerializerCambioSincronizacion
     recurso_requerido = "SYNC"
+    roles_permitidos_por_accion = {
+        "list": ("PROP", "ADMI", "OPER"), "retrieve": ("PROP", "ADMI", "OPER"),
+        "create": ("PROP", "ADMI", "OPER"), "confirmar": ("PROP", "ADMI", "OPER"),
+    }
 
     def get_queryset(self):
         consulta = CambioSincronizacion.objects.filter(

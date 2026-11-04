@@ -31,10 +31,11 @@ export function AuthProvider({ children }) {
   // Sin fincas, usamos 'propietario' como estado inicial para que la cuenta
   // nueva pueda crear su primera finca desde /propietario.
   const rolActivo = useMemo(() => {
+    if (user?.is_superuser || user?.roles?.includes('SUPR')) return 'superadmin';
     if (!fincas.length) return 'propietario';
     const activa = fincas.find((f) => f.id === fincaActivaId);
     return activa?.mi_rol || null;
-  }, [fincas, fincaActivaId]);
+  }, [fincas, fincaActivaId, user]);
 
   // La finca activa real (objeto, no sólo id) para que las pantallas puedan leerla directo.
   const fincaActiva = useMemo(

@@ -10,6 +10,7 @@ from apps.common.serializers import (
     relacion_inmutable,
     usuario_actual,
 )
+from apps.rbac.services import es_superadministrador
 
 from .models import Finca, Invitacion, Membresia
 
@@ -26,6 +27,8 @@ class SerializerFinca(serializers.ModelSerializer):
 
     def get_mi_rol(self, finca):
         usuario = self.context["request"].user
+        if es_superadministrador(usuario):
+            return "superadmin"
         if finca.propietario_id == usuario.pk:
             return "propietario"
         membresia = Membresia.objects.filter(

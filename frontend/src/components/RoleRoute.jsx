@@ -9,8 +9,8 @@ const rutaDashboardPorRol = {
   operario: '/operario',
 };
 
-export default function RoleRoute({ rolesPermitidos, children }) {
-  const { isAuthenticated, loading, rolActivo } = useAuth();
+export default function RoleRoute({ rolesPermitidos, recurso, children }) {
+  const { isAuthenticated, loading, rolActivo, user } = useAuth();
 
   if (loading) {
     return <div className="app-loading" aria-label="Cargando sesión"><span /></div>;
@@ -20,7 +20,8 @@ export default function RoleRoute({ rolesPermitidos, children }) {
     return <Navigate to="/" replace />;
   }
 
-  if (!rolesPermitidos.includes(rolActivo)) {
+  const tieneRecurso = !recurso || user?.is_superuser || user?.recursos?.includes(recurso);
+  if (!tieneRecurso || (!user?.is_superuser && rolActivo !== 'superadmin' && !rolesPermitidos.includes(rolActivo))) {
     // Fallback a /propietario cuando aún no se ha resuelto el rol (p. ej. la primera finca sin crearse).
     const destino = rutaDashboardPorRol[rolActivo] || '/propietario';
     return <Navigate to={destino} replace />;

@@ -8,6 +8,7 @@ import Bovinos from './pages/Bovinos';
 import Membresias from './pages/Membresias';
 import Invitaciones from './pages/Invitaciones';
 import RbacAdmin from './pages/RbacAdmin';
+import ModulePlaceholder from './pages/ModulePlaceholder';
 import DashboardLayout from './components/DashboardLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 import RoleRoute from './components/RoleRoute';
@@ -32,7 +33,7 @@ function App() {
           <Route
             path="/propietario"
             element={
-              <RoleRoute rolesPermitidos={ROLES_SOLO_PROPIETARIO}>
+              <RoleRoute rolesPermitidos={ROLES_SOLO_PROPIETARIO} recurso="FINC">
                 <Dashboard audience="propietario" />
               </RoleRoute>
             }
@@ -40,7 +41,7 @@ function App() {
           <Route
             path="/administracion"
             element={
-              <RoleRoute rolesPermitidos={ROLES_GESTION}>
+              <RoleRoute rolesPermitidos={ROLES_GESTION} recurso="FINC">
                 <Dashboard audience="administrador" />
               </RoleRoute>
             }
@@ -48,11 +49,12 @@ function App() {
           <Route
             path="/operario"
             element={
-              <RoleRoute rolesPermitidos={ROLES_TODOS}>
+              <RoleRoute rolesPermitidos={ROLES_TODOS} recurso="FINC">
                 <Dashboard audience="operario" />
               </RoleRoute>
             }
           />
+          <Route path="/superadmin" element={<ResourceRoute recurso="FINC"><Dashboard audience="superadmin" /></ResourceRoute>} />
           <Route path="/dashboard" element={<Navigate to="/propietario" replace />} />
           <Route
             path="/fincas"
@@ -65,7 +67,7 @@ function App() {
           <Route
             path="/bovinos"
             element={
-              <RoleRoute rolesPermitidos={ROLES_TODOS}>
+              <RoleRoute rolesPermitidos={ROLES_TODOS} recurso="BOVI">
                 <Bovinos />
               </RoleRoute>
             }
@@ -73,7 +75,7 @@ function App() {
           <Route
             path="/miembros"
             element={
-              <RoleRoute rolesPermitidos={ROLES_SOLO_PROPIETARIO}>
+              <RoleRoute rolesPermitidos={ROLES_GESTION} recurso="MIEM">
                 <Membresias />
               </RoleRoute>
             }
@@ -85,9 +87,7 @@ function App() {
               // dentro de Invitaciones.jsx), pero ACEPTAR una invitación lo hace
               // quien fue invitado, que normalmente no es propietario de nada
               // todavía. Por eso la ruta queda abierta a los tres roles.
-              <RoleRoute rolesPermitidos={ROLES_TODOS}>
-                <Invitaciones />
-              </RoleRoute>
+              <Invitaciones />
             }
           />
           <Route
@@ -98,6 +98,11 @@ function App() {
             path="/rbac"
             element={<ResourceRoute recurso="RBAC"><RbacAdmin /></ResourceRoute>}
           />
+          <Route path="/vision" element={<ResourceRoute recurso="VCOM"><ModulePlaceholder endpoint="/modules/vision/" title="Visión computacional" description="Estructura de captura y análisis preparada para el módulo de IA." extension="apps.vision" /></ResourceRoute>} />
+          <Route path="/sincronizacion" element={<ResourceRoute recurso="SYNC"><ModulePlaceholder endpoint="/sync-changes/" title="Sincronización" description="Punto de integración para la cola offline y sus conflictos." extension="apps.sync" /></ResourceRoute>} />
+          <Route path="/respaldos" element={<ResourceRoute recurso="RESP"><ModulePlaceholder endpoint="/backups/" title="Respaldos" description="Punto de integración para copias verificadas de la finca." extension="apps.backups" /></ResourceRoute>} />
+          <Route path="/exportaciones" element={<ResourceRoute recurso="EXPO"><ModulePlaceholder endpoint="/modules/exports/" title="Exportaciones" description="Contrato reservado para exportar datos sin exponer lógica todavía." extension="apps.backups.exports" /></ResourceRoute>} />
+          <Route path="/recuperacion" element={<ResourceRoute recurso="RECU"><ModulePlaceholder endpoint="/modules/recovery/" title="Recuperación" description="Contrato reservado para recuperar respaldos verificados." extension="apps.backups.recovery" /></ResourceRoute>} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

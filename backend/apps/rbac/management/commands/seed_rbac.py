@@ -4,15 +4,16 @@ from apps.rbac.models import Recurso, Rol
 
 
 RECURSOS = (
-    "RBAC", "FINC", "MIEM", "INVT", "RAZA", "LOTE", "BOVI", "DISP", "MODI", "TIPO", "MEDI", "PESA", "RESP", "SYNC",
+    "RBAC", "FINC", "MIEM", "INVT", "LOTE", "BOVI", "MEDI", "PESA", "RESP", "SYNC",
+    "VCOM", "EXPO", "RECU",
 )
 
 # Los códigos son deliberadamente de cuatro caracteres para ajustarse al ERD.
 PERMISOS_POR_ROL = {
     "SUPR": RECURSOS,
-    "PROP": RECURSOS,
-    "ADMI": ("FINC", "MIEM", "INVT", "LOTE", "BOVI", "DISP", "MEDI", "PESA", "SYNC"),
-    "OPER": ("FINC", "BOVI", "DISP", "MEDI", "PESA", "SYNC"),
+    "PROP": ("FINC", "MIEM", "INVT", "LOTE", "BOVI", "MEDI", "PESA", "RESP", "SYNC", "EXPO", "RECU"),
+    "ADMI": ("FINC", "MIEM", "INVT", "LOTE", "BOVI", "MEDI", "PESA", "SYNC"),
+    "OPER": ("FINC", "LOTE", "BOVI", "MEDI", "PESA", "SYNC"),
 }
 
 
@@ -24,4 +25,4 @@ class Command(BaseCommand):
         for codigo, permisos in PERMISOS_POR_ROL.items():
             rol, _ = Rol.objects.get_or_create(Rol_nombre=codigo)
             rol.recursos.set([recursos[permiso] for permiso in permisos])
-        self.stdout.write(self.style.SUCCESS("RBAC preparado: 4 roles y 14 recursos; no se crearon credenciales."))
+        self.stdout.write(self.style.SUCCESS("RBAC actualizado: 4 roles y 13 recursos administrados; no se crearon credenciales."))

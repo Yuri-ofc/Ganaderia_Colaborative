@@ -1,11 +1,9 @@
 // Matriz de control de acceso por rol (RBAC) del sistema.
 //
-// Esto NO se lee del backend: es una transcripción manual de las reglas que
-// hoy viven repartidas en los `serializers.py` y `views.py` de cada app
-// (sobre todo en los `PermissionDenied` y en `fincas_accesibles` /
-// `fincas_administradas` de `apps/common/serializers.py`). Si esas reglas
-// cambian, esta matriz hay que actualizarla a mano para que siga siendo
-// confiable.
+// Esto NO autoriza nada: es una referencia visual para la pantalla de permisos.
+// La política ejecutable se centraliza en apps.rbac.services y cada vista
+// declara su mapa de acciones. Los serializers mantienen únicamente el alcance
+// contextual (finca, dispositivo propio o is_staff).
 //
 // Estados posibles por celda:
 //   'si'          -> permitido sin condiciones adicionales a su rol.

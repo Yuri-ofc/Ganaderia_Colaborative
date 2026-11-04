@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
 from .models import Recurso, Rol
+from .services import recursos_efectivos
 
 Usuario = get_user_model()
 
@@ -53,4 +54,4 @@ class SerializerUsuarioRbac(serializers.ModelSerializer):
 
 def roles_y_recursos_usuario(usuario):
     roles = Rol.objects.filter(asignaciones_usuario__usuario=usuario).prefetch_related("recursos").distinct()
-    return roles, sorted({recurso.nombre for rol in roles for recurso in rol.recursos.all()})
+    return roles, sorted(recursos_efectivos(usuario))

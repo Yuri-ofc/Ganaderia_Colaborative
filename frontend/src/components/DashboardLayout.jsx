@@ -9,16 +9,22 @@ const rutaResumenPorRol = {
   propietario: '/propietario',
   administrador: '/administracion',
   operario: '/operario',
+  superadmin: '/superadmin',
 };
 
-// Items secundarios del menú, con los roles que pueden verlos EN LA FINCA ACTIVA.
+// El menú es una proyección de los recursos efectivos que entrega el backend.
+// rolFinca solo restringe acciones cuyo contexto lo exige; nunca sustituye la
+// validación del servidor.
 const itemsSecundarios = [
-  { to: '/fincas', label: 'Fincas', icon: 'farm', rolesPermitidos: ['propietario', 'administrador', 'operario'] },
-  { to: '/bovinos', label: 'Bovinos', icon: 'cattle', rolesPermitidos: ['propietario', 'administrador', 'operario'] },
-  { to: '/miembros', label: 'Equipo', icon: 'people', rolesPermitidos: ['propietario'] },
-  // Crear invitaciones es solo del propietario, pero aceptar una lo hace
-  // cualquier rol (quien fue invitado no suele ser propietario de nada).
-  { to: '/invitaciones', label: 'Invitaciones', icon: 'mail', rolesPermitidos: ['propietario', 'administrador', 'operario'] },
+  { to: '/fincas', label: 'Fincas', icon: 'farm', recurso: 'FINC', bootstrap: true },
+  { to: '/bovinos', label: 'Bovinos', icon: 'cattle', recurso: 'BOVI' },
+  { to: '/miembros', label: 'Equipo', icon: 'people', recurso: 'MIEM', rolesFinca: ['propietario', 'administrador'] },
+  { to: '/invitaciones', label: 'Invitaciones', icon: 'mail', recurso: 'INVT', rolesFinca: ['propietario', 'administrador'] },
+  { to: '/vision', label: 'Visión computacional', icon: 'grid', recurso: 'VCOM' },
+  { to: '/sincronizacion', label: 'Sincronización', icon: 'grid', recurso: 'SYNC' },
+  { to: '/respaldos', label: 'Respaldos', icon: 'grid', recurso: 'RESP' },
+  { to: '/exportaciones', label: 'Exportaciones', icon: 'grid', recurso: 'EXPO' },
+  { to: '/recuperacion', label: 'Recuperación', icon: 'grid', recurso: 'RECU' },
 ];
 
 export default function DashboardLayout() {
@@ -38,7 +44,12 @@ export default function DashboardLayout() {
     ? { to: rutaResumenPorRol[rolActivo] || '/propietario', label: 'Resumen', icon: 'grid', end: false }
     : null;
 
-  const itemsVisibles = itemsSecundarios.filter((item) => item.rolesPermitidos.includes(rolActivo));
+  const esSuperadmin = user?.is_superuser || user?.roles?.includes('SUPR');
+  const tieneRecurso = (recurso) => esSuperadmin || user?.recursos?.includes(recurso);
+  const itemsVisibles = itemsSecundarios.filter((item) => (
+    (tieneRecurso(item.recurso) || (item.bootstrap && !user?.recursos?.length))
+    && (!item.rolesFinca || esSuperadmin || item.rolesFinca.includes(rolActivo))
+  ));
   const itemRbac = (user?.is_superuser || user?.recursos?.includes('RBAC'))
     ? { to: '/rbac', label: 'Control de acceso', icon: 'shield', end: true }
     : null;

@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "measure:api": "node scripts/measure-api.mjs"
   },
   "dependencies": {
     "axios": "^1.7.2",
@@ -16,6 +17,8 @@
     "react-router-dom": "^6.23.1"
   },
   "devDependencies": {
+    "@playwright/mcp": "^0.0.83",
+    "@playwright/test": "^1.64.1",
     "@vitejs/plugin-react": "^4.3.1",
     "autoprefixer": "^10.4.18",
     "postcss": "^8.4.33",
