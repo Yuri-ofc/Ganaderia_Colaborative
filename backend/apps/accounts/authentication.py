@@ -13,11 +13,17 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.exceptions import AuthenticationFailed
 
 
+def token_vencido(token):
+    """Indica si el token superó ``API_TOKEN_TTL_DIAS`` desde su creación."""
+
+    dias = getattr(settings, "API_TOKEN_TTL_DIAS", 0)
+    return bool(dias and token.created and timezone.now() - token.created > timedelta(days=dias))
+
+
 class TokenAutenticacion(TokenAuthentication):
     def authenticate_credentials(self, key):
         usuario, token = super().authenticate_credentials(key)
-        dias = getattr(settings, "API_TOKEN_TTL_DIAS", 0)
-        if dias and token.created and timezone.now() - token.created > timedelta(days=dias):
+        if token_vencido(token):
             # Se revoca al detectarlo: el cliente recibe 401 y vuelve al login.
             token.delete()
             raise AuthenticationFailed("La sesión expiró. Inicia sesión de nuevo.")
