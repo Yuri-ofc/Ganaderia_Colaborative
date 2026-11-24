@@ -60,7 +60,7 @@ class PruebasRaizApi(PruebaApi):
         self.assertIn("farms", cuerpo["endpoints"])
         self.assertTrue(cuerpo["endpoints"]["measurements"].endswith("/api/v1/measurements/"))
         self.assertTrue(cuerpo["endpoints"]["token"].endswith("/api/v1/auth/token/"))
-        self.assertEqual(len(cuerpo["endpoints"]), 18)
+        self.assertEqual(len(cuerpo["endpoints"]), 21)
 
 
 @override_settings(PASSWORD_HASHERS=["django.contrib.auth.hashers.MD5PasswordHasher"])
@@ -219,9 +219,10 @@ class PruebasAjustesDesdeEnv(SimpleTestCase):
         self.assertEqual(settings.DATABASE_ENGINE, "django.db.backends.sqlite3")
         self.assertEqual(settings.AUTH_USER_MODEL, "accounts.Usuario")
         self.assertIn(
-            "rest_framework.authentication.TokenAuthentication",
+            "apps.accounts.authentication.TokenAutenticacion",
             settings.REST_FRAMEWORK["DEFAULT_AUTHENTICATION_CLASSES"],
         )
+        self.assertEqual(settings.API_TOKEN_TTL_DIAS, 30)
         self.assertEqual(
             settings.REST_FRAMEWORK["DEFAULT_PERMISSION_CLASSES"],
             ["apps.common.permissions.PermisoUsuarioActivo"],

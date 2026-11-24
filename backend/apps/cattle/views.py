@@ -18,7 +18,9 @@ from .serializers import (
 
 class VistaRazas(MixinEscrituraPersonal, MixinBorradoLogico, viewsets.ModelViewSet):
     serializer_class = SerializerRaza
-    recurso_requerido = "RAZA"
+    # README.md: lectura del catálogo para todo usuario autenticado; escritura
+    # queda en MixinEscrituraPersonal (is_staff), no en un rol de finca.
+    recurso_requerido = None
     filter_backends = (filters.SearchFilter,)
     search_fields = ("nombre",)
 
@@ -34,6 +36,11 @@ class VistaRazas(MixinEscrituraPersonal, MixinBorradoLogico, viewsets.ModelViewS
 class VistaPotreros(MixinBorradoLogico, viewsets.ModelViewSet):
     serializer_class = SerializerPotrero
     recurso_requerido = "LOTE"
+    roles_permitidos_por_accion = {
+        "list": ("PROP", "ADMI", "OPER"), "retrieve": ("PROP", "ADMI", "OPER"),
+        "create": ("PROP", "ADMI"), "update": ("PROP", "ADMI"),
+        "partial_update": ("PROP", "ADMI"), "destroy": ("PROP", "ADMI"),
+    }
 
     def get_queryset(self):
         consulta = Potrero.objects.filter(
@@ -54,6 +61,13 @@ class VistaPotreros(MixinBorradoLogico, viewsets.ModelViewSet):
 class VistaBovinos(MixinBorradoLogico, viewsets.ModelViewSet):
     serializer_class = SerializerBovino
     recurso_requerido = "BOVI"
+    roles_permitidos_por_accion = {
+        "list": ("PROP", "ADMI", "OPER"), "retrieve": ("PROP", "ADMI", "OPER"),
+        "create": ("PROP", "ADMI", "OPER"),
+        "update": ("PROP", "ADMI"), "partial_update": ("PROP", "ADMI"),
+        "destroy": ("PROP", "ADMI"), "aprobar_perfil": ("PROP", "ADMI"),
+        "desactivar": ("PROP", "ADMI"),
+    }
     filter_backends = (filters.SearchFilter, filters.OrderingFilter)
     search_fields = ("arete", "raza__nombre", "potrero__nombre")
     ordering_fields = ("arete", "creado_en", "fecha_nacimiento_estimada")
@@ -129,6 +143,10 @@ class VistaMovimientosPotrero(
 ):
     serializer_class = SerializerMovimientoPotrero
     recurso_requerido = "LOTE"
+    roles_permitidos_por_accion = {
+        "list": ("PROP", "ADMI", "OPER"), "retrieve": ("PROP", "ADMI", "OPER"),
+        "create": ("PROP",), "update": ("PROP",), "partial_update": ("PROP",),
+    }
     http_method_names = ("get", "post", "patch", "head", "options")
 
     def get_queryset(self):

@@ -7,6 +7,14 @@ class Recurso(models.Model):
 
     idrecurso = models.AutoField(primary_key=True)
     nombre = models.CharField(max_length=4, unique=True)
+    # Texto visible del acceso en el menú del dashboard. El ``nombre`` sigue
+    # siendo el código estable que valida el servidor; la etiqueta se puede
+    # cambiar desde el panel RBAC sin tocar el código.
+    etiqueta = models.CharField(max_length=60, blank=True)
+    # Opciones del dashboard creadas desde Control de acceso: aparecen en el
+    # menú con una pantalla "en proceso de implementación" hasta que exista
+    # el módulo real.
+    opcion_menu = models.BooleanField(default=False)
 
     class Meta:
         db_table = "recurso"
@@ -14,6 +22,10 @@ class Recurso(models.Model):
 
     def __str__(self):
         return self.nombre
+
+    @property
+    def etiqueta_visible(self):
+        return self.etiqueta or self.nombre
 
 
 class Rol(models.Model):

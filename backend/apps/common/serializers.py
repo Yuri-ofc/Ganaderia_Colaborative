@@ -3,6 +3,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied
 
 from apps.farms.models import Finca, Membresia
+from apps.rbac.services import es_superadministrador
 
 
 def usuario_actual(serializer):
@@ -20,6 +21,8 @@ def usuario_actual(serializer):
 def fincas_accesibles(usuario):
     if usuario is None or not usuario.is_authenticated or not usuario.is_active or usuario.eliminado_en is not None:
         return Finca.objects.none()
+    if es_superadministrador(usuario):
+        return Finca.objects.filter(eliminado_en__isnull=True)
     return Finca.objects.filter(eliminado_en__isnull=True).filter(
         Q(propietario=usuario)
         | Q(membresias__usuario=usuario, membresias__eliminado_en__isnull=True)
@@ -29,6 +32,8 @@ def fincas_accesibles(usuario):
 def fincas_administradas(usuario):
     if usuario is None or not usuario.is_authenticated or not usuario.is_active or usuario.eliminado_en is not None:
         return Finca.objects.none()
+    if es_superadministrador(usuario):
+        return Finca.objects.filter(eliminado_en__isnull=True)
     return Finca.objects.filter(eliminado_en__isnull=True).filter(
         Q(propietario=usuario)
         | Q(
@@ -37,6 +42,15 @@ def fincas_administradas(usuario):
             membresias__eliminado_en__isnull=True,
         )
     ).distinct()
+
+
+def fincas_propias(usuario):
+    """Fincas de operaciones sensibles reservadas al propietario (RF-24)."""
+    if usuario is None or not usuario.is_authenticated or not usuario.is_active or usuario.eliminado_en is not None:
+        return Finca.objects.none()
+    if es_superadministrador(usuario):
+        return Finca.objects.filter(eliminado_en__isnull=True)
+    return Finca.objects.filter(propietario=usuario, eliminado_en__isnull=True)
 
 
 def exigir_acceso_finca(serializer, finca, *, administrar=False):

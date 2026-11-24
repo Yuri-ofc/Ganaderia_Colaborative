@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useEtiquetas } from '../context/EtiquetasContext';
 import { MapContainer, Marker, TileLayer, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import { useAuth } from '../context/AuthContext';
@@ -10,13 +11,13 @@ import {
 } from '../services/farmService';
 
 // Fix clásico del ícono por defecto de Leaflet cuando se usa con bundlers:
-// cargamos los PNG oficiales desde el CDN para evitar depender de rutas locales.
+// Vite resuelve los PNG del paquete instalado, sin depender de un CDN externo.
+import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png';
+import iconUrl from 'leaflet/dist/images/marker-icon.png';
+import shadowUrl from 'leaflet/dist/images/marker-shadow.png';
+
 delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-});
+L.Icon.Default.mergeOptions({ iconRetinaUrl, iconUrl, shadowUrl });
 
 // Centro inicial del mapa cuando no hay coordenadas previas (centro geográfico de Colombia).
 const CENTRO_COLOMBIA = [4.5709, -74.2973];
@@ -95,10 +96,11 @@ function MarcadorInteractivo({ posicion, onPick }) {
 }
 
 export default function Fincas() {
+  const { etiqueta } = useEtiquetas();
   // Crear una finca te vuelve su propietario (RF-02). Se restringe esa
   // acción a quien ya está actuando como propietario; administrador y
   // operario solo consultan/editan según lo que el backend ya les permite.
-  const { rolActivo } = useAuth();
+  const { rolActivo, loadProfile } = useAuth();
   const puedeCrear = rolActivo === 'propietario';
   const [fincas, setFincas] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -172,6 +174,10 @@ export default function Fincas() {
         await createFinca(payload);
       }
       setModalOpen(false);
+      // Crear la primera finca cambia el rol efectivo y los recursos del
+      // usuario (PROP, MIEM, BOVI...). Se recarga el perfil para que el menú,
+      // el selector de finca y las rutas se actualicen sin recargar la página.
+      await loadProfile();
       fetchFincas();
     } catch (err) {
       const data = err.response?.data;
@@ -194,6 +200,7 @@ export default function Fincas() {
     if (!window.confirm(`¿Eliminar la finca "${finca.nombre}"?`)) return;
     try {
       await deleteFinca(finca.id);
+      await loadProfile();
       fetchFincas();
     } catch (err) {
       alert(err.response?.data?.detail || 'Error al eliminar.');
@@ -216,7 +223,7 @@ export default function Fincas() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-campo-900">Mis Fincas</h1>
+          <h1 className="text-2xl font-bold text-campo-900">{etiqueta('FINC', 'Mis Fincas')}</h1>
           <p className="text-sm text-gray-500">Gestiona las fincas de tu propiedad.</p>
         </div>
         {puedeCrear && (

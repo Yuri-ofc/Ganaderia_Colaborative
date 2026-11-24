@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.db.models.functions import Lower
 
 from apps.common.models import ModeloBaseUuid
 
@@ -14,6 +15,14 @@ class Usuario(ModeloBaseUuid, AbstractUser):
                 fields=("telefono",),
                 condition=models.Q(telefono__isnull=False, eliminado_en__isnull=True),
                 name="telefono_usuario_activo_unico",
+            ),
+            # El inicio de sesión busca el correo sin distinguir mayúsculas, así
+            # que la unicidad se impone sobre ``lower(email)``. Los usuarios
+            # eliminados lógicamente y las cuentas sin correo quedan fuera.
+            models.UniqueConstraint(
+                Lower("email"),
+                condition=models.Q(eliminado_en__isnull=True) & ~models.Q(email=""),
+                name="email_usuario_activo_unico",
             ),
         ]
 

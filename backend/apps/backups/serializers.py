@@ -4,7 +4,7 @@ from apps.common.serializers import (
     CampoRelacionadoConAlcance,
     SerializerSoloCreacion,
     exigir_acceso_finca,
-    fincas_administradas,
+    fincas_propias,
     usuario_actual,
 )
 from apps.farms.models import Finca
@@ -13,7 +13,7 @@ from .models import Respaldo
 
 
 class SerializerRespaldo(SerializerSoloCreacion):
-    finca = CampoRelacionadoConAlcance(queryset=Finca.objects.all(), alcance=fincas_administradas)
+    finca = CampoRelacionadoConAlcance(queryset=Finca.objects.all(), alcance=fincas_propias)
 
     class Meta:
         model = Respaldo
@@ -25,7 +25,9 @@ class SerializerRespaldo(SerializerSoloCreacion):
 
     def validate(self, atributos):
         finca = self.instance.finca if self.instance else atributos["finca"]
-        exigir_acceso_finca(self, finca, administrar=True)
+        # RF-24/RNF-17: crear, exportar o restaurar respaldos es del dueño.
+        if not fincas_propias(usuario_actual(self)).filter(pk=finca.pk).exists():
+            raise serializers.ValidationError("Solo el propietario puede gestionar respaldos.")
         if atributos.get("tamano_bytes", getattr(self.instance, "tamano_bytes", None)) <= 0:
             raise serializers.ValidationError({"tamano_bytes": "El archivo debe tener un tamaño positivo."})
         return atributos

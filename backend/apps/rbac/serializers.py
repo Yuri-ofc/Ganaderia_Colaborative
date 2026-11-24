@@ -1,7 +1,10 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
+from apps.accounts.serializers import SerializerRegistro
+
 from .models import Recurso, Rol
+from .services import recursos_efectivos
 
 Usuario = get_user_model()
 
@@ -9,10 +12,39 @@ Usuario = get_user_model()
 class SerializerRecurso(serializers.ModelSerializer):
     class Meta:
         model = Recurso
-        fields = ("idrecurso", "nombre")
+        fields = ("idrecurso", "nombre", "etiqueta", "opcion_menu")
+        read_only_fields = ("opcion_menu",)
 
     def validate_nombre(self, valor):
         return valor.strip().upper()
+
+    def validate_etiqueta(self, valor):
+        # Sin espacios repetidos ni en los extremos; vacío vuelve al código.
+        valor = " ".join((valor or "").split())
+        if valor:
+            repetidas = Recurso.objects.filter(etiqueta__iexact=valor)
+            if self.instance is not None:
+                repetidas = repetidas.exclude(pk=self.instance.pk)
+            if repetidas.exists():
+                raise serializers.ValidationError("Ya existe otra opción con esa etiqueta.")
+        return valor
+
+    def to_representation(self, instancia):
+        datos = super().to_representation(instancia)
+        datos["etiqueta"] = instancia.etiqueta_visible
+        return datos
+
+
+class SerializerNuevoUsuario(SerializerRegistro):
+    """Alta de cuenta desde Control de acceso: mismas reglas que el registro.
+
+    Se reutiliza ``SerializerRegistro`` para que la contraseña se guarde con
+    ``set_password`` y las validaciones de usuario, correo y teléfono sean las
+    de siempre; así el inicio de sesión funciona sin ningún cambio. El correo
+    es obligatorio porque el login de la aplicación se hace con correo.
+    """
+
+    email = serializers.EmailField()
 
 
 class SerializerRol(serializers.ModelSerializer):
@@ -53,4 +85,4 @@ class SerializerUsuarioRbac(serializers.ModelSerializer):
 
 def roles_y_recursos_usuario(usuario):
     roles = Rol.objects.filter(asignaciones_usuario__usuario=usuario).prefetch_related("recursos").distinct()
-    return roles, sorted({recurso.nombre for rol in roles for recurso in rol.recursos.all()})
+    return roles, sorted(recursos_efectivos(usuario))

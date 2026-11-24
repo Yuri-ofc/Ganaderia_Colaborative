@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useEtiquetas } from '../context/EtiquetasContext';
 import { useAuth } from '../context/AuthContext';
 import {
   getBovinos,
@@ -43,6 +44,7 @@ const formVacio = {
 };
 
 export default function Bovinos() {
+  const { etiqueta } = useEtiquetas();
   const { fincaActiva, rolActivo } = useAuth();
   // RF-09: solo propietario y administrador editan/aprueban/dan de baja.
   const puedeGestionar = rolActivo === 'propietario' || rolActivo === 'administrador';
@@ -215,7 +217,7 @@ export default function Bovinos() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-campo-900">Bovinos</h1>
+          <h1 className="text-2xl font-bold text-campo-900">{etiqueta('BOVI', 'Bovinos')}</h1>
           <p className="text-sm text-gray-500">{fincaActiva?.nombre}</p>
         </div>
         <button

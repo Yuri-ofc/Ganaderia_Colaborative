@@ -28,12 +28,16 @@ class PruebasAccesoRespaldos(PruebaApi):
             "version": "2026.01",
         }
 
-    def test_propietaria_y_administradora_registran_respaldos(self):
-        for usuario in (self.propietaria, self.administradora):
-            self.autenticar(usuario)
-            respuesta = self.client.post(reverse("backup-list"), self.datos(), format="json")
-            self.assertEqual(respuesta.status_code, status.HTTP_201_CREATED)
-            self.assertEqual(respuesta.json()["creado_por"], str(usuario.pk))
+    def test_solo_la_propietaria_registra_respaldos(self):
+        self.autenticar(self.propietaria)
+        respuesta = self.client.post(reverse("backup-list"), self.datos(), format="json")
+        self.assertEqual(respuesta.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(respuesta.json()["creado_por"], str(self.propietaria.pk))
+
+        self.autenticar(self.administradora)
+        respuesta = self.client.post(reverse("backup-list"), self.datos(), format="json")
+        self.assertEqual(respuesta.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(Respaldo.objects.filter(finca=self.finca).count(), 1)
 
     def test_el_operario_no_registra_ni_ve_respaldos(self):
         Respaldo.objects.create(
@@ -45,10 +49,9 @@ class PruebasAccesoRespaldos(PruebaApi):
             version="2026.01",
         )
         self.autenticar(self.operario)
-        self.assertEqual(self.client.get(reverse("backup-list")).json()["count"], 0)
+        self.assertEqual(self.client.get(reverse("backup-list")).status_code, status.HTTP_403_FORBIDDEN)
         respuesta = self.client.post(reverse("backup-list"), self.datos(), format="json")
-        self.assertEqual(respuesta.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("finca", respuesta.json())
+        self.assertEqual(respuesta.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_no_se_registra_un_respaldo_de_otra_finca(self):
         self.autenticar(self.propietaria)

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Icon from './Icon';
+import { useEtiquetas } from '../context/EtiquetasContext';
 import SelectorFinca from './SelectorFinca';
 
 // Ruta de "Resumen" (dashboard) correspondiente a cada rol.
@@ -9,16 +10,22 @@ const rutaResumenPorRol = {
   propietario: '/propietario',
   administrador: '/administracion',
   operario: '/operario',
+  superadmin: '/superadmin',
 };
 
-// Items secundarios del menú, con los roles que pueden verlos EN LA FINCA ACTIVA.
+// El menú es una proyección de los recursos efectivos que entrega el backend.
+// rolFinca solo restringe acciones cuyo contexto lo exige; nunca sustituye la
+// validación del servidor.
 const itemsSecundarios = [
-  { to: '/fincas', label: 'Fincas', icon: 'farm', rolesPermitidos: ['propietario', 'administrador', 'operario'] },
-  { to: '/bovinos', label: 'Bovinos', icon: 'cattle', rolesPermitidos: ['propietario', 'administrador', 'operario'] },
-  { to: '/miembros', label: 'Equipo', icon: 'people', rolesPermitidos: ['propietario'] },
-  // Crear invitaciones es solo del propietario, pero aceptar una lo hace
-  // cualquier rol (quien fue invitado no suele ser propietario de nada).
-  { to: '/invitaciones', label: 'Invitaciones', icon: 'mail', rolesPermitidos: ['propietario', 'administrador', 'operario'] },
+  { to: '/fincas', label: 'Fincas', icon: 'farm', recurso: 'FINC', bootstrap: true },
+  { to: '/bovinos', label: 'Bovinos', icon: 'cattle', recurso: 'BOVI' },
+  { to: '/miembros', label: 'Equipo', icon: 'people', recurso: 'MIEM', rolesFinca: ['propietario', 'administrador'] },
+  { to: '/invitaciones', label: 'Invitaciones', icon: 'mail', recurso: 'INVT', rolesFinca: ['propietario', 'administrador'] },
+  { to: '/vision', label: 'Visión computacional', icon: 'grid', recurso: 'VCOM' },
+  { to: '/sincronizacion', label: 'Sincronización', icon: 'grid', recurso: 'SYNC' },
+  { to: '/respaldos', label: 'Respaldos', icon: 'grid', recurso: 'RESP' },
+  { to: '/exportaciones', label: 'Exportaciones', icon: 'grid', recurso: 'EXPO' },
+  { to: '/recuperacion', label: 'Recuperación', icon: 'grid', recurso: 'RECU' },
 ];
 
 export default function DashboardLayout() {
@@ -26,6 +33,7 @@ export default function DashboardLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { etiqueta, opciones } = useEtiquetas();
   const initial = (user?.username || 'U').slice(0, 1).toUpperCase();
 
   const onLogout = async () => {
@@ -38,11 +46,20 @@ export default function DashboardLayout() {
     ? { to: rutaResumenPorRol[rolActivo] || '/propietario', label: 'Resumen', icon: 'grid', end: false }
     : null;
 
-  const itemsVisibles = itemsSecundarios.filter((item) => item.rolesPermitidos.includes(rolActivo));
+  const esSuperadmin = user?.is_superuser || user?.roles?.includes('SUPR');
+  const tieneRecurso = (recurso) => esSuperadmin || user?.recursos?.includes(recurso);
+  const itemsVisibles = itemsSecundarios.map((item) => ({ ...item, label: etiqueta(item.recurso, item.label) })).filter((item) => (
+    (tieneRecurso(item.recurso) || (item.bootstrap && !user?.recursos?.length))
+    && (!item.rolesFinca || esSuperadmin || item.rolesFinca.includes(rolActivo))
+  ));
   const itemRbac = (user?.is_superuser || user?.recursos?.includes('RBAC'))
-    ? { to: '/rbac', label: 'Control de acceso', icon: 'shield', end: true }
+    ? { to: '/rbac', label: etiqueta('RBAC', 'Control de acceso'), icon: 'shield', end: true }
     : null;
-  const todosLosItems = [...(resumenItem ? [resumenItem] : []), ...itemsVisibles, ...(itemRbac ? [itemRbac] : [])];
+  // Opciones agregadas desde Control de acceso: se ven con el recurso asignado.
+  const itemsNuevos = opciones
+    .filter((opcion) => tieneRecurso(opcion.nombre))
+    .map((opcion) => ({ to: `/opcion/${opcion.nombre}`, label: opcion.etiqueta, icon: 'grid' }));
+  const todosLosItems = [...(resumenItem ? [resumenItem] : []), ...itemsVisibles, ...itemsNuevos, ...(itemRbac ? [itemRbac] : [])];
 
   const currentTitle = todosLosItems.find((item) => location.pathname === item.to)?.label || 'Ganadería';
 

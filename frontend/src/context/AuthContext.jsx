@@ -6,6 +6,23 @@ const AuthContext = createContext(null);
 
 // Clave en localStorage para recordar la finca activa entre sesiones.
 const CLAVE_FINCA_ACTIVA = 'fincaActivaId';
+const CLAVE_TOKEN = 'authToken';
+
+// "Recordarme" decide dónde vive el token: localStorage lo conserva entre
+// sesiones del navegador y sessionStorage lo borra al cerrar la pestaña.
+function leerToken() {
+  return localStorage.getItem(CLAVE_TOKEN) || sessionStorage.getItem(CLAVE_TOKEN) || null;
+}
+
+function borrarToken() {
+  localStorage.removeItem(CLAVE_TOKEN);
+  sessionStorage.removeItem(CLAVE_TOKEN);
+}
+
+function guardarToken(valor, recordar) {
+  borrarToken();
+  (recordar ? localStorage : sessionStorage).setItem(CLAVE_TOKEN, valor);
+}
 
 // Finca por defecto cuando no hay ninguna guardada: prefiere donde eres
 // propietario, si no administrador, si no la primera disponible.
@@ -19,7 +36,7 @@ function elegirFincaDefault(fincas) {
 }
 
 export function AuthProvider({ children }) {
-  const [token, setToken] = useState(localStorage.getItem('authToken'));
+  const [token, setToken] = useState(leerToken);
   const [user, setUser] = useState(null);
   const [fincas, setFincas] = useState([]);
   const [fincaActivaId, setFincaActivaId] = useState(() => localStorage.getItem(CLAVE_FINCA_ACTIVA));
@@ -31,10 +48,11 @@ export function AuthProvider({ children }) {
   // Sin fincas, usamos 'propietario' como estado inicial para que la cuenta
   // nueva pueda crear su primera finca desde /propietario.
   const rolActivo = useMemo(() => {
+    if (user?.is_superuser || user?.roles?.includes('SUPR')) return 'superadmin';
     if (!fincas.length) return 'propietario';
     const activa = fincas.find((f) => f.id === fincaActivaId);
     return activa?.mi_rol || null;
-  }, [fincas, fincaActivaId]);
+  }, [fincas, fincaActivaId, user]);
 
   // La finca activa real (objeto, no sólo id) para que las pantallas puedan leerla directo.
   const fincaActiva = useMemo(
@@ -77,14 +95,14 @@ export function AuthProvider({ children }) {
   };
 
   const loadProfile = async () => {
-    if (!localStorage.getItem('authToken')) return null;
+    if (!leerToken()) return null;
     try {
       const response = await getProfile();
       setUser(response.data);
       await refreshFincas();
       return response.data;
     } catch {
-      localStorage.removeItem('authToken');
+      borrarToken();
       localStorage.removeItem(CLAVE_FINCA_ACTIVA);
       setToken(null);
       setUser(null);
@@ -101,8 +119,8 @@ export function AuthProvider({ children }) {
     else setLoading(false);
   }, []);
 
-  const saveToken = async (newToken) => {
-    localStorage.setItem('authToken', newToken);
+  const saveToken = async (newToken, recordar = true) => {
+    guardarToken(newToken, recordar);
     setToken(newToken);
     setLoading(true);
     return loadProfile();
@@ -114,7 +132,7 @@ export function AuthProvider({ children }) {
     } catch (e) {
       // Si falla el logout en servidor, igual cerramos sesión local
     }
-    localStorage.removeItem('authToken');
+    borrarToken();
     localStorage.removeItem(CLAVE_FINCA_ACTIVA);
     setToken(null);
     setUser(null);

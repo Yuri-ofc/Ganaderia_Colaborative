@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useEtiquetas } from '../context/EtiquetasContext';
 import { useSearchParams } from 'react-router-dom';
 import {
   getFincas,
@@ -7,6 +8,7 @@ import {
   cancelInvitacion,
   acceptInvitacion,
 } from '../services/farmService';
+import { useAuth } from '../context/AuthContext';
 
 function Modal({ open, onClose, title, children }) {
   if (!open) return null;
@@ -32,6 +34,8 @@ const estadoLabels = {
 };
 
 export default function Invitaciones() {
+  const { etiqueta } = useEtiquetas();
+  const { loadProfile } = useAuth();
   const [fincas, setFincas] = useState([]);
   const [selectedFinca, setSelectedFinca] = useState('');
   const [invitaciones, setInvitaciones] = useState([]);
@@ -60,18 +64,19 @@ export default function Invitaciones() {
     }
   }, []);
 
+  const cargarFincasPropias = () => getFincas()
+    .then((res) => {
+      const list = res.data.results || res.data;
+      // RF-04: solo el propietario invita. Si una finca llega con otro
+      // mi_rol (p. ej. eres operario en otra), el backend la devolvería
+      // vacía de todas formas; no la ofrecemos en el selector.
+      const propias = list.filter((f) => f.mi_rol === 'propietario');
+      setFincas(propias);
+      if (propias.length > 0) setSelectedFinca((prev) => prev || propias[0].id);
+    });
+
   useEffect(() => {
-    getFincas()
-      .then((res) => {
-        const list = res.data.results || res.data;
-        // RF-04: solo el propietario invita. Si una finca llega con otro
-        // mi_rol (p. ej. eres operario en otra), el backend la devolvería
-        // vacía de todas formas; no la ofrecemos en el selector.
-        const propias = list.filter((f) => f.mi_rol === 'propietario');
-        setFincas(propias);
-        if (propias.length > 0) setSelectedFinca(propias[0].id);
-      })
-      .finally(() => setLoading(false));
+    cargarFincasPropias().finally(() => setLoading(false));
   }, []);
 
   const fetchInvitaciones = () => {
@@ -142,6 +147,11 @@ export default function Invitaciones() {
       const res = await acceptInvitacion(tokenAccept);
       setAcceptMsg(`✅ ¡Invitación aceptada! Finca: ${res.data.finca_id}`);
       setTokenAccept('');
+      // Aceptar una invitación cambia fincas, rol efectivo y recursos:
+      // se refresca la sesión completa para que el menú y las rutas queden
+      // habilitados sin recargar el navegador.
+      await loadProfile();
+      await cargarFincasPropias();
     } catch (err) {
       const data = err.response?.data;
       if (data) {
@@ -163,7 +173,7 @@ export default function Invitaciones() {
     <div>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-campo-900">Invitaciones</h1>
+          <h1 className="text-2xl font-bold text-campo-900">{etiqueta('INVT', 'Invitaciones')}</h1>
           <p className="text-sm text-gray-500">Invita ganaderos a tus fincas o acepta invitaciones.</p>
         </div>
         <div className="flex items-center gap-3 flex-wrap">

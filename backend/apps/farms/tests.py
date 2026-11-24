@@ -89,14 +89,13 @@ class PruebasRolesMembresia(PruebaApi):
 
     def test_el_operario_no_gestiona_membresias(self):
         self.autenticar(self.operaria)
-        self.assertEqual(self.client.get(reverse("membership-list")).json()["count"], 0)
+        self.assertEqual(self.client.get(reverse("membership-list")).status_code, status.HTTP_403_FORBIDDEN)
         respuesta = self.client.post(
             reverse("membership-list"),
             {"finca": str(self.finca.pk), "usuario": str(self.candidato.pk), "rol": "operario"},
             format="json",
         )
-        self.assertEqual(respuesta.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("finca", respuesta.json())
+        self.assertEqual(respuesta.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_el_administrador_agrega_operarios(self):
         self.autenticar(self.administrador)

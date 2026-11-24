@@ -18,10 +18,12 @@ class SerializerPerfilUsuario(serializers.ModelSerializer):
         read_only_fields = fields
 
     def get_roles(self, usuario):
-        from apps.rbac.serializers import roles_y_recursos_usuario
+        from apps.rbac.services import roles_efectivos
 
-        roles, _ = roles_y_recursos_usuario(usuario)
-        return [rol.Rol_nombre for rol in roles]
+        # Roles efectivos, no solo las asignaciones explícitas: un propietario
+        # sin rol RBAC asignado también actúa como PROP. El campo ``recursos``
+        # se calcula con la misma fuente, así que ambos quedan coherentes.
+        return sorted(roles_efectivos(usuario))
 
     def get_recursos(self, usuario):
         from apps.rbac.serializers import roles_y_recursos_usuario
@@ -41,6 +43,14 @@ class SerializerRegistro(serializers.ModelSerializer):
     def validate_password(self, valor):
         validate_password(valor, user=Usuario(username=self.initial_data.get("username", "")))
         return valor
+
+    def validate_email(self, valor):
+        correo = (valor or "").strip()
+        if not correo:
+            return ""
+        if Usuario.objects.filter(email__iexact=correo, eliminado_en__isnull=True).exists():
+            raise serializers.ValidationError("Este correo ya está registrado.")
+        return correo
 
     def validate_telefono(self, valor):
         if not valor:
@@ -81,19 +91,25 @@ class SerializerInicioSesion(serializers.Serializer):
             raise serializers.ValidationError({"detail": "Indique correo electrónico o usuario."})
         if email and username:
             raise serializers.ValidationError({"detail": "Use correo electrónico o usuario, no ambos."})
-        try:
-            usuario_obj = Usuario.objects.get(email__iexact=email) if email else Usuario.objects.get(username=username)
-        except Usuario.DoesNotExist:
-            raise serializers.ValidationError(
-                {"detail": "Credenciales inválidas."}, code="authorization"
-            )
 
-        # Autenticar con username + password
-        usuario = authenticate(
-            request=self.context.get("request"),
-            username=usuario_obj.username,
-            password=password,
-        )
+        # ``email`` no identifica una cuenta de forma unívoca en bases antiguas:
+        # se prueba cada candidato hasta encontrar el que valida la contraseña.
+        # Así una fila duplicada nunca produce un error 500.
+        if email:
+            candidatos = Usuario.objects.filter(email__iexact=email).order_by("date_joined", "pk")
+        else:
+            candidatos = Usuario.objects.filter(username=username)
+
+        usuario = None
+        for candidato in candidatos:
+            autenticado = authenticate(
+                request=self.context.get("request"),
+                username=candidato.username,
+                password=password,
+            )
+            if autenticado:
+                usuario = autenticado
+                break
 
         if not usuario:
             raise serializers.ValidationError(
