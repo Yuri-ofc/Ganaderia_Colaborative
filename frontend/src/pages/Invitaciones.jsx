@@ -93,7 +93,10 @@ export default function Invitaciones() {
   const getDefaultExpiry = () => {
     const d = new Date();
     d.setDate(d.getDate() + 7);
-    return d.toISOString().slice(0, 16);
+    // <input type="datetime-local"> espera hora LOCAL (YYYY-MM-DDTHH:mm);
+    // toISOString() devolvería UTC y la fecha quedaría desplazada.
+    const dos = (n) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${dos(d.getMonth() + 1)}-${dos(d.getDate())}T${dos(d.getHours())}:${dos(d.getMinutes())}`;
   };
 
   const handleCreate = async (e) => {
