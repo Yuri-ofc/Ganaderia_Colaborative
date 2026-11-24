@@ -80,6 +80,34 @@ class PruebasAutenticacionPorToken(PruebaApi):
         self.assertEqual(fincas.status_code, status.HTTP_200_OK)
         self.assertEqual(fincas["Content-Type"], "application/json")
 
+    @override_settings(API_TOKEN_TTL_DIAS=30)
+    def test_el_login_renueva_un_token_vencido(self):
+        """Regresión (#8): el login no debe devolver un token ya vencido."""
+
+        vencido = Token.objects.create(user=self.usuario)
+        Token.objects.filter(pk=vencido.pk).update(created=timezone.now() - timedelta(days=31))
+
+        respuesta = self.client.post(
+            reverse("token"), {"username": "operaria", "password": CLAVE}, format="json"
+        )
+        self.assertEqual(respuesta.status_code, status.HTTP_200_OK)
+        nueva = respuesta.json()["token"]
+        self.assertNotEqual(nueva, vencido.key)
+        self.assertEqual(Token.objects.filter(user=self.usuario).count(), 1)
+
+        self.client.credentials(HTTP_AUTHORIZATION=f"Token {nueva}")
+        self.assertEqual(self.client.get(reverse("farm-list")).status_code, status.HTTP_200_OK)
+
+    @override_settings(API_TOKEN_TTL_DIAS=30)
+    def test_el_login_conserva_un_token_vigente(self):
+        vigente = Token.objects.create(user=self.usuario)
+
+        respuesta = self.client.post(
+            reverse("token"), {"username": "operaria", "password": CLAVE}, format="json"
+        )
+        self.assertEqual(respuesta.status_code, status.HTTP_200_OK)
+        self.assertEqual(respuesta.json()["token"], vigente.key)
+
     def test_el_correo_compartido_con_una_cuenta_eliminada_no_bloquea_el_acceso(self):
         """Regresión: ``email`` no es un identificador único en bases antiguas.
 
