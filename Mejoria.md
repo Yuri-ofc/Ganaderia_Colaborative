@@ -74,3 +74,13 @@ Se generó y seleccionó la dirección «One motif» para respetar el sistema vi
 
 El árbol de trabajo ya contenía cambios locales en múltiples archivos de backend y frontend antes de iniciar esta tarea. Esos cambios no se tocarán como parte de la landing.
 
+
+## Actualización 2026-11-04: referencia cambiada a Namari
+
+La referencia visual de la landing pasó a ser la plantilla gratuita **Namari** (ShapingRain, https://onepagelove.com/namari). Se analizó su demo real (HTML y CSS) y se tomó solo la estructura: cabecera pegajosa que se vuelve sólida, hero con parallax, marco de página, bloque de cuatro iconos, galería con lightbox, banda parallax, bloque de «testimonios», rejilla de confianza y tres bloques de acceso, con el dorado de la plantilla (`#d2b356`) como acento sobre los verdes del proyecto. No se copian textos, imágenes ni código.
+
+- Ruta: `/inicio` (el login sigue en `/` sin cambios). Archivos: `frontend/src/pages/Landing.jsx`, `frontend/src/styles/landing.css` (todo bajo el prefijo `landing-`) y la ruta en `App.jsx`.
+- Adaptación de las secciones de Namari sin inventar nada: «testimonios» pasó a ser el selector de roles; «clientes», cuatro garantías reales del sistema (offline, borrado lógico, mediciones inmutables, datos por finca); «precios», tres vías de acceso sin precios. El vídeo de Namari no se incluyó porque el proyecto no tiene ninguno.
+- Los módulos de visión y de sincronización/respaldos se marcan «Módulo en preparación» porque en la interfaz son todavía marcadores.
+- Imágenes: solo `fondo-clean.jpg` (la galería son seis recortes distintos de esa ilustración) y `logo.jpeg`.
+- Se omitieron los rótulos pequeños sobre los títulos de Namari porque la skill de diseño los falla.
