@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Navigate, Route, Routes } from 'react-router-dom';
+import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
@@ -26,6 +27,7 @@ function App() {
     <Router>
       <AuthProvider>
       <Routes>
+        <Route path="/inicio" element={<Landing />} />
         <Route path="/" element={<Login />} />
         <Route path="/registro" element={<Signup />} />
         <Route path="/signup" element={<Navigate to="/registro" replace />} />
