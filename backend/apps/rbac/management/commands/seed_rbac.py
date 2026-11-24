@@ -8,6 +8,13 @@ RECURSOS = (
     "VCOM", "EXPO", "RECU",
 )
 
+# Texto inicial de cada opción del menú (editable luego desde el panel RBAC).
+ETIQUETAS_INICIALES = {
+    "RBAC": "Control de acceso", "FINC": "Fincas", "BOVI": "Bovinos", "MIEM": "Equipo",
+    "INVT": "Invitaciones", "VCOM": "Visión computacional", "SYNC": "Sincronización",
+    "RESP": "Respaldos", "EXPO": "Exportaciones", "RECU": "Recuperación",
+}
+
 # Los códigos son deliberadamente de cuatro caracteres para ajustarse al ERD.
 PERMISOS_POR_ROL = {
     "SUPR": RECURSOS,
@@ -22,6 +29,12 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         recursos = {codigo: Recurso.objects.get_or_create(nombre=codigo)[0] for codigo in RECURSOS}
+        # La etiqueta solo se rellena si está vacía: lo que el administrador
+        # haya cambiado desde Control de acceso nunca se sobrescribe.
+        for codigo, recurso in recursos.items():
+            if not recurso.etiqueta:
+                recurso.etiqueta = ETIQUETAS_INICIALES.get(codigo, codigo)
+                recurso.save(update_fields=("etiqueta",))
         for codigo, permisos in PERMISOS_POR_ROL.items():
             rol, _ = Rol.objects.get_or_create(Rol_nombre=codigo)
             rol.recursos.set([recursos[permiso] for permiso in permisos])
@@ -31,7 +44,7 @@ class Command(BaseCommand):
         # asignó a un rol personalizado, la decisión es del administrador.
         obsoletos = [
             recurso
-            for recurso in Recurso.objects.exclude(nombre__in=RECURSOS)
+            for recurso in Recurso.objects.exclude(nombre__in=RECURSOS).exclude(opcion_menu=True)
             if not recurso.roles.exists()
         ]
         for recurso in obsoletos:

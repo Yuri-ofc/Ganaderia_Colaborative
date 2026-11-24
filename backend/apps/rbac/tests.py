@@ -31,6 +31,102 @@ class PruebasRbac(PruebaApi):
             {"SUPR", "OPER"},
         )
 
+    def test_listado_de_usuarios_oculta_a_los_superusuarios(self):
+        superusuario = self.crear_usuario("superusuario_django", con_permisos_rbac=False, is_superuser=True)
+        self.autenticar(self.admin)
+        respuesta = self.client.get(reverse("rbac-users"))
+        self.assertEqual(respuesta.status_code, status.HTTP_200_OK)
+        nombres = {u["username"] for u in respuesta.json()}
+        self.assertIn("operario_rbac", nombres)
+        self.assertNotIn(superusuario.username, nombres)
+        # Tampoco aparece al buscarlo por nombre.
+        buscado = self.client.get(reverse("rbac-users"), {"q": "superusuario"})
+        self.assertEqual(buscado.json(), [])
+
+    def test_no_se_pueden_consultar_ni_cambiar_roles_de_un_superusuario(self):
+        superusuario = self.crear_usuario("superusuario_django", con_permisos_rbac=False, is_superuser=True)
+        self.autenticar(self.admin)
+        url = reverse("rbac-user-roles", kwargs={"usuario_id": superusuario.pk})
+        self.assertEqual(self.client.get(url).status_code, status.HTTP_404_NOT_FOUND)
+        cambio = self.client.put(url, {"roles_ids": [self.rol_operario.pk]}, format="json")
+        self.assertEqual(cambio.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertFalse(UsuarioHasRol.objects.filter(usuario=superusuario).exists())
+
+    def test_crea_usuario_desde_control_de_acceso_y_puede_iniciar_sesion(self):
+        self.autenticar(self.admin)
+        datos = {"username": "nuevo_rbac", "email": "Nuevo@Example.com", "telefono": "3001112233", "password": "Clave.Nueva.2026"}
+        respuesta = self.client.post(reverse("rbac-users"), datos, format="json")
+        self.assertEqual(respuesta.status_code, status.HTTP_201_CREATED)
+        self.assertNotIn("password", respuesta.json())
+        # Aparece en el listado del panel.
+        nombres = {u["username"] for u in self.client.get(reverse("rbac-users")).json()}
+        self.assertIn("nuevo_rbac", nombres)
+        # Y entra por el login normal, con correo, sin ningún paso extra.
+        self.desautenticar()
+        login = self.client.post(
+            reverse("token"), {"email": "nuevo@example.com", "password": "Clave.Nueva.2026"}, format="json"
+        )
+        self.assertEqual(login.status_code, status.HTTP_200_OK)
+        self.assertEqual(login.json()["usuario"]["username"], "nuevo_rbac")
+
+    def test_crear_usuario_valida_duplicados_y_correo_obligatorio(self):
+        self.autenticar(self.admin)
+        base = {"username": "otro_rbac", "email": "otro@example.com", "password": "Clave.Nueva.2026"}
+        self.assertEqual(self.client.post(reverse("rbac-users"), base, format="json").status_code, 201)
+        repetido = self.client.post(reverse("rbac-users"), {**base, "username": "otro_rbac2"}, format="json")
+        self.assertEqual(repetido.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("email", repetido.json())
+        sin_correo = self.client.post(reverse("rbac-users"), {**base, "username": "x_rbac", "email": ""}, format="json")
+        self.assertEqual(sin_correo.status_code, status.HTTP_400_BAD_REQUEST)
+        debil = self.client.post(reverse("rbac-users"), {**base, "username": "y_rbac", "email": "y@example.com", "password": "123"}, format="json")
+        self.assertEqual(debil.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_crear_usuario_exige_el_recurso_rbac(self):
+        self.autenticar(self.operario)
+        datos = {"username": "intruso", "email": "i@example.com", "password": "Clave.Nueva.2026"}
+        self.assertEqual(self.client.post(reverse("rbac-users"), datos, format="json").status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_etiqueta_de_recurso_se_edita_hasta_60_caracteres_y_llega_al_menu(self):
+        self.autenticar(self.admin)
+        url = reverse("rbac-resource-detail", kwargs={"pk": self.fincas.pk})
+        larga = "Gestión de fincas y potreros de la hacienda"
+        respuesta = self.client.patch(url, {"etiqueta": f"  {larga}  "}, format="json")
+        self.assertEqual(respuesta.status_code, status.HTTP_200_OK)
+        self.assertEqual(respuesta.json()["etiqueta"], larga)
+        self.assertEqual(respuesta.json()["nombre"], "FINC")  # el código no cambia
+        self.assertEqual(self.client.patch(url, {"etiqueta": "x" * 61}, format="json").status_code, 400)
+        # Cualquier sesión activa lee las etiquetas para pintar el menú.
+        self.autenticar(self.operario)
+        etiquetas = self.client.get(reverse("rbac-labels")).json()["etiquetas"]
+        self.assertEqual(etiquetas["FINC"], larga)
+        self.assertEqual(etiquetas["RBAC"], "RBAC")  # sin etiqueta: se muestra el código
+
+    def test_crea_opcion_nueva_del_dashboard_con_codigo_automatico(self):
+        self.autenticar(self.admin)
+        url = reverse("rbac-menu-options")
+        creada = self.client.post(url, {"etiqueta": "  Reportes   de campo "}, format="json")
+        self.assertEqual(creada.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(creada.json()["etiqueta"], "Reportes de campo")
+        self.assertEqual(creada.json()["nombre"], "REPO")
+        self.assertTrue(creada.json()["opcion_menu"])
+        # Mismo inicio de nombre: el código se desambigua.
+        segunda = self.client.post(url, {"etiqueta": "Reporte mensual"}, format="json")
+        self.assertEqual(segunda.json()["nombre"], "REP1")
+        # Etiqueta repetida o vacía se rechaza.
+        self.assertEqual(self.client.post(url, {"etiqueta": "reportes de campo"}, format="json").status_code, 400)
+        self.assertEqual(self.client.post(url, {"etiqueta": "  "}, format="json").status_code, 400)
+        # Cualquier sesión recibe las opciones nuevas para pintar el menú.
+        self.autenticar(self.operario)
+        opciones = self.client.get(reverse("rbac-labels")).json()["opciones"]
+        self.assertEqual({o["nombre"] for o in opciones}, {"REPO", "REP1"})
+
+    def test_solo_rbac_crea_opciones_y_seed_no_las_elimina(self):
+        self.autenticar(self.operario)
+        self.assertEqual(self.client.post(reverse("rbac-menu-options"), {"etiqueta": "Algo"}, format="json").status_code, 403)
+        Recurso.objects.create(nombre="NUEV", etiqueta="Nueva", opcion_menu=True)
+        call_command("seed_rbac", verbosity=0)
+        self.assertTrue(Recurso.objects.filter(nombre="NUEV").exists())
+
     def test_login_carga_roles_y_recursos_efectivos(self):
         self.admin.email = "super@example.com"
         self.admin.save(update_fields=("email",))

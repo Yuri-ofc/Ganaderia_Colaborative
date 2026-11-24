@@ -1,13 +1,31 @@
+import re
+import unicodedata
+
 from django.contrib.auth import get_user_model
 from rest_framework import status, viewsets
-from rest_framework.exceptions import NotFound
+from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .models import Recurso, Rol, UsuarioHasRol
-from .serializers import SerializerRecurso, SerializerRol, SerializerUsuarioRbac, roles_y_recursos_usuario
+from .serializers import (
+    SerializerNuevoUsuario,
+    SerializerRecurso,
+    SerializerRol,
+    SerializerUsuarioRbac,
+    roles_y_recursos_usuario,
+)
 
 Usuario = get_user_model()
+
+
+def usuarios_administrables():
+    """Cuentas cuyos roles se pueden consultar y cambiar desde el panel RBAC.
+
+    Los superusuarios de Django quedan fuera: tienen acceso total por
+    definición (ver `es_superadministrador`) y no se les puede modificar.
+    """
+    return Usuario.objects.filter(is_active=True, is_superuser=False, eliminado_en__isnull=True)
 
 
 class VistaRoles(viewsets.ModelViewSet):
@@ -27,7 +45,7 @@ class VistaUsuariosRbac(APIView):
 
     def get(self, solicitud):
         termino = solicitud.query_params.get("q", "").strip()
-        consulta = Usuario.objects.filter(is_active=True, eliminado_en__isnull=True).order_by("username")
+        consulta = usuarios_administrables().order_by("username")
         if termino:
             consulta = consulta.filter(username__icontains=termino)
         usuarios = list(consulta[:50])
@@ -36,13 +54,69 @@ class VistaUsuariosRbac(APIView):
             usuario.roles_rbac = roles
         return Response(SerializerUsuarioRbac(usuarios, many=True).data)
 
+    def post(self, solicitud):
+        serializer = SerializerNuevoUsuario(data=solicitud.data)
+        serializer.is_valid(raise_exception=True)
+        usuario = serializer.save()
+        usuario.roles_rbac = []
+        return Response(SerializerUsuarioRbac(usuario).data, status=status.HTTP_201_CREATED)
+
+
+class VistaEtiquetasRecursos(APIView):
+    """Etiquetas de menú por código de recurso, para cualquier sesión activa.
+
+    No declara ``recurso_requerido``: solo expone textos de interfaz, nunca
+    permisos. Los accesos reales siguen viniendo del perfil y del servidor.
+    """
+
+    def get(self, solicitud):
+        recursos = list(Recurso.objects.all())
+        return Response({
+            "etiquetas": {recurso.nombre: recurso.etiqueta_visible for recurso in recursos},
+            "opciones": [
+                {"nombre": recurso.nombre, "etiqueta": recurso.etiqueta_visible}
+                for recurso in recursos
+                if recurso.opcion_menu
+            ],
+        })
+
+
+def _codigo_para(etiqueta):
+    """Código de cuatro caracteres libre a partir del texto de la etiqueta."""
+    texto = unicodedata.normalize("NFKD", etiqueta).encode("ascii", "ignore").decode().upper()
+    base = (re.sub(r"[^A-Z]", "", texto) + "XXXX")[:4]
+    if not Recurso.objects.filter(nombre=base).exists():
+        return base
+    for numero in range(1, 1000):
+        sufijo = str(numero)
+        candidato = base[: 4 - len(sufijo)] + sufijo
+        if not Recurso.objects.filter(nombre=candidato).exists():
+            return candidato
+    raise ValidationError({"etiqueta": "No hay códigos libres para esta etiqueta."})
+
+
+class VistaOpcionesMenu(APIView):
+    """Crea una opción nueva del dashboard (recurso + entrada de menú)."""
+
+    recurso_requerido = "RBAC"
+
+    def post(self, solicitud):
+        # Parcial: aquí solo se valida la etiqueta; el código lo genera el servidor.
+        datos = SerializerRecurso(data={"etiqueta": solicitud.data.get("etiqueta", "")}, partial=True)
+        datos.is_valid(raise_exception=True)
+        etiqueta = datos.validated_data["etiqueta"]
+        if not etiqueta:
+            raise ValidationError({"etiqueta": "Escribe el nombre de la opción."})
+        recurso = Recurso.objects.create(nombre=_codigo_para(etiqueta), etiqueta=etiqueta, opcion_menu=True)
+        return Response(SerializerRecurso(recurso).data, status=status.HTTP_201_CREATED)
+
 
 class VistaRolesUsuario(APIView):
     recurso_requerido = "RBAC"
 
     def _usuario(self, usuario_id):
         try:
-            return Usuario.objects.get(pk=usuario_id, is_active=True, eliminado_en__isnull=True)
+            return usuarios_administrables().get(pk=usuario_id)
         except Usuario.DoesNotExist as error:
             raise NotFound("Usuario no encontrado.") from error
 
