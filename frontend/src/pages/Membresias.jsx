@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useEtiquetas } from '../context/EtiquetasContext';
 import { getFincas, getMembresias, createMembresia, updateMembresia, deleteMembresia } from '../services/farmService';
 import { buscarUsuario } from '../services/authService';
 
@@ -24,6 +25,7 @@ const rolLabels = {
 };
 
 export default function Membresias() {
+  const { etiqueta } = useEtiquetas();
   const [fincas, setFincas] = useState([]);
   const [selectedFinca, setSelectedFinca] = useState('');
   const [membresias, setMembresias] = useState([]);
@@ -187,7 +189,7 @@ export default function Membresias() {
     <div>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-campo-900">Miembros</h1>
+          <h1 className="text-2xl font-bold text-campo-900">{etiqueta('MIEM', 'Miembros')}</h1>
           <p className="text-sm text-gray-500">Administra los miembros de tus fincas.</p>
         </div>
         <div className="flex items-center gap-3">

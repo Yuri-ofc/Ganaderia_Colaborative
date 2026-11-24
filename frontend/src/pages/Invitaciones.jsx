@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useEtiquetas } from '../context/EtiquetasContext';
 import { useSearchParams } from 'react-router-dom';
 import {
   getFincas,
@@ -33,6 +34,7 @@ const estadoLabels = {
 };
 
 export default function Invitaciones() {
+  const { etiqueta } = useEtiquetas();
   const { loadProfile } = useAuth();
   const [fincas, setFincas] = useState([]);
   const [selectedFinca, setSelectedFinca] = useState('');
@@ -171,7 +173,7 @@ export default function Invitaciones() {
     <div>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-campo-900">Invitaciones</h1>
+          <h1 className="text-2xl font-bold text-campo-900">{etiqueta('INVT', 'Invitaciones')}</h1>
           <p className="text-sm text-gray-500">Invita ganaderos a tus fincas o acepta invitaciones.</p>
         </div>
         <div className="flex items-center gap-3 flex-wrap">

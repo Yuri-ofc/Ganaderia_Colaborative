@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
+import { useEtiquetas } from '../context/EtiquetasContext';
 
-export default function ModulePlaceholder({ endpoint, title, description, extension }) {
+export default function ModulePlaceholder({ endpoint, title, description, extension, recurso }) {
+  const { etiqueta } = useEtiquetas();
   const [state, setState] = useState('loading');
 
   useEffect(() => {
@@ -9,7 +11,7 @@ export default function ModulePlaceholder({ endpoint, title, description, extens
   }, [endpoint]);
 
   return <div className="page-content module-placeholder" data-ui>
-    <header className="page-title-row"><div><h1>{title}</h1><p>{description}</p></div></header>
+    <header className="page-title-row"><div><h1>{recurso ? etiqueta(recurso, title) : title}</h1><p>{description}</p></div></header>
     <section className="module-placeholder-panel" aria-live="polite">
       <h2>Módulo preparado para integración</h2>
       <p>{state === 'loading' ? 'Verificando acceso y contrato del módulo…' : state === 'ready' ? 'Tu rol tiene acceso. La lógica de negocio se incorporará en este punto.' : 'No se pudo verificar el contrato del módulo.'}</p>

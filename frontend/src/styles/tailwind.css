@@ -173,3 +173,54 @@
 .rbac-pending { margin-top:24px; background:#fafcf9; }.rbac-pending h2 { font-size:16px; }.rbac-pending p { margin-top:6px; color:var(--muted); font-size:13px; }
 @media (max-width: 860px) { .rbac-layout,.rbac-users-grid { grid-template-columns:1fr; }.rbac-user-roles { padding:20px 0 0; border-left:0; border-top:1px solid var(--rule); }.rbac-resource-grid { grid-template-columns:1fr; } }
 @media (max-width: 560px) { .rbac-panel,.rbac-users,.rbac-pending { padding:16px; }.rbac-resource-grid { gap:0; }.rbac-user-row { padding:0 4px; }.rbac-user-row em { max-width:40%; }.rbac-search { max-width:none; } }
+
+/* Control de acceso: etiquetas de menú y alta de usuarios */
+.rbac-code { display:block; margin-top:2px; color:var(--muted); font-size:11px; font-weight:500; letter-spacing:.04em; }
+.rbac-label-edit { grid-column:1/-1; padding:10px 0; border-bottom:1px solid var(--rule); }
+.rbac-label-edit label { display:block; margin-bottom:7px; color:var(--muted); font-size:12px; font-weight:600; }
+.rbac-label-edit > div { display:flex; flex-wrap:wrap; gap:8px; }
+.rbac-label-edit input { min-width:200px; flex:1; min-height:36px; padding:0 10px; border:1px solid #d7dfd5; border-radius:6px; color:var(--ink); font-size:13px; }
+.rbac-label-edit input:focus,.rbac-new-user input:focus { outline:none; border-color:var(--forest-600); box-shadow:0 0 0 3px rgba(76,130,78,.14); }
+.rbac-label-edit .button { min-height:36px; }
+.rbac-label-edit .button[type="submit"],.rbac-new-user .button { color:#fff; background:var(--forest-800); }
+.rbac-label-edit small { display:block; margin-top:6px; color:var(--muted); font-size:11px; }
+.rbac-users > .section-heading { align-items:start; }
+.rbac-new-user { display:grid; gap:14px; max-width:620px; margin:16px 0; padding:18px; border:1px solid var(--rule); border-radius:8px; background:#fafcf9; }
+.rbac-new-user label { display:grid; gap:7px; color:#344839; font-size:12px; font-weight:600; }
+.rbac-new-user label span { color:#89958b; font-weight:400; }
+.rbac-new-user input { min-width:0; min-height:36px; padding:0 10px; border:1px solid #d7dfd5; border-radius:6px; background:#fff; color:var(--ink); font-size:13px; font-weight:400; }
+.rbac-new-user-actions { display:flex; align-items:center; flex-wrap:wrap; gap:12px; }
+.rbac-new-user-actions small { color:var(--muted); font-size:12px; }
+
+/* Control de acceso: pestañas y opciones del menú */
+.rbac-tabs { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin:0 0 20px; }
+.rbac-tab { display:grid; gap:3px; padding:12px 14px; border:1px solid var(--rule); border-radius:8px; background:#fff; color:var(--ink); text-align:left; transition:background .15s,border-color .15s; }
+.rbac-tab:hover { background:#f7faf6; }
+.rbac-tab.is-active { border-color:var(--forest-700); background:#e5ede2; }
+.rbac-tab strong { display:flex; align-items:center; gap:9px; font-size:14px; }
+.rbac-tab em { display:grid; place-items:center; width:20px; height:20px; border-radius:50%; background:var(--forest-800); color:#fff; font-size:11px; font-style:normal; }
+.rbac-tab small { padding-left:29px; color:var(--muted); font-size:12px; }
+.rbac-toolbar { display:flex; align-items:end; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+.rbac-toolbar .rbac-search { margin:0; flex:1; }
+.rbac-new-user h3 { font-size:15px; }
+.rbac-empty { padding:16px 10px; font-size:13px; }
+.rbac-role-row > span { display:block; }
+.rbac-layout-options { grid-template-columns:minmax(0,1.2fr) minmax(300px,.8fr); }
+.rbac-option-list { border-top:1px solid var(--rule); margin-top:12px; }
+.rbac-option-row { min-height:52px; display:flex; align-items:center; gap:8px; border-bottom:1px solid var(--rule); }
+.rbac-option-row > span:first-child { flex:1; min-width:0; }
+.rbac-option-row strong { font-size:14px; }
+.rbac-option-row .icon-button,.rbac-option-spacer { width:27px; height:27px; flex:none; }
+.rbac-option-row .icon-button { opacity:.6; }
+.rbac-option-row .icon-button:hover { opacity:1; }
+.rbac-option-row .icon-button.is-danger:hover { color:#8b2929; background:#fff2f1; }
+.rbac-option-list .rbac-label-edit { grid-column:auto; }
+.rbac-new-option { margin-top:4px; padding-top:0; border-top:0; }
+.rbac-new-option small { display:block; margin-top:8px; color:var(--muted); font-size:12px; line-height:1.5; }
+.rbac-advanced { margin-top:20px; padding-top:14px; border-top:1px solid var(--rule); }
+.rbac-advanced summary { cursor:pointer; color:var(--muted); font-size:12px; font-weight:600; }
+.rbac-advanced .rbac-inline-form { margin-top:12px; padding-top:0; border-top:0; }
+.rbac-advanced .rbac-inline-form > div { flex-wrap:wrap; }
+.rbac-advanced .rbac-inline-form input { min-width:110px; }
+@media (max-width: 860px) { .rbac-layout-options { grid-template-columns:1fr; } }
+@media (max-width: 560px) { .rbac-tabs { grid-template-columns:1fr; } .rbac-tab small { display:none; } }

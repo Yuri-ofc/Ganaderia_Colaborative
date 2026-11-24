@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useEtiquetas } from '../context/EtiquetasContext';
 import { MapContainer, Marker, TileLayer, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import { useAuth } from '../context/AuthContext';
@@ -95,6 +96,7 @@ function MarcadorInteractivo({ posicion, onPick }) {
 }
 
 export default function Fincas() {
+  const { etiqueta } = useEtiquetas();
   // Crear una finca te vuelve su propietario (RF-02). Se restringe esa
   // acción a quien ya está actuando como propietario; administrador y
   // operario solo consultan/editan según lo que el backend ya les permite.
@@ -221,7 +223,7 @@ export default function Fincas() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-campo-900">Mis Fincas</h1>
+          <h1 className="text-2xl font-bold text-campo-900">{etiqueta('FINC', 'Mis Fincas')}</h1>
           <p className="text-sm text-gray-500">Gestiona las fincas de tu propiedad.</p>
         </div>
         {puedeCrear && (

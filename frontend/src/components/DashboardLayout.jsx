@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Icon from './Icon';
+import { useEtiquetas } from '../context/EtiquetasContext';
 import SelectorFinca from './SelectorFinca';
 
 // Ruta de "Resumen" (dashboard) correspondiente a cada rol.
@@ -32,6 +33,7 @@ export default function DashboardLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { etiqueta, opciones } = useEtiquetas();
   const initial = (user?.username || 'U').slice(0, 1).toUpperCase();
 
   const onLogout = async () => {
@@ -46,14 +48,18 @@ export default function DashboardLayout() {
 
   const esSuperadmin = user?.is_superuser || user?.roles?.includes('SUPR');
   const tieneRecurso = (recurso) => esSuperadmin || user?.recursos?.includes(recurso);
-  const itemsVisibles = itemsSecundarios.filter((item) => (
+  const itemsVisibles = itemsSecundarios.map((item) => ({ ...item, label: etiqueta(item.recurso, item.label) })).filter((item) => (
     (tieneRecurso(item.recurso) || (item.bootstrap && !user?.recursos?.length))
     && (!item.rolesFinca || esSuperadmin || item.rolesFinca.includes(rolActivo))
   ));
   const itemRbac = (user?.is_superuser || user?.recursos?.includes('RBAC'))
-    ? { to: '/rbac', label: 'Control de acceso', icon: 'shield', end: true }
+    ? { to: '/rbac', label: etiqueta('RBAC', 'Control de acceso'), icon: 'shield', end: true }
     : null;
-  const todosLosItems = [...(resumenItem ? [resumenItem] : []), ...itemsVisibles, ...(itemRbac ? [itemRbac] : [])];
+  // Opciones agregadas desde Control de acceso: se ven con el recurso asignado.
+  const itemsNuevos = opciones
+    .filter((opcion) => tieneRecurso(opcion.nombre))
+    .map((opcion) => ({ to: `/opcion/${opcion.nombre}`, label: opcion.etiqueta, icon: 'grid' }));
+  const todosLosItems = [...(resumenItem ? [resumenItem] : []), ...itemsVisibles, ...itemsNuevos, ...(itemRbac ? [itemRbac] : [])];
 
   const currentTitle = todosLosItems.find((item) => location.pathname === item.to)?.label || 'Ganadería';
 
