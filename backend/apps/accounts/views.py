@@ -10,6 +10,7 @@ from rest_framework.views import APIView
 
 from apps.common.permissions import PermisoUsuarioActivo
 
+from .authentication import token_vencido
 from .serializers import SerializerInicioSesion, SerializerPerfilUsuario, SerializerRegistro
 
 
@@ -29,7 +30,14 @@ class VistaInicioSesion(ObtainAuthToken):
         serializer = self.serializer_class(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
         usuario = serializer.validated_data["user"]
-        token, _ = Token.objects.get_or_create(user=usuario)
+        token = Token.objects.filter(user=usuario).first()
+        if token is not None and token_vencido(token):
+            # Un token vencido no sirve: se descarta y se emite uno nuevo para
+            # que el usuario no quede fuera justo después de iniciar sesión.
+            token.delete()
+            token = None
+        if token is None:
+            token = Token.objects.create(user=usuario)
         return Response(
             {"token": token.key, "usuario": SerializerPerfilUsuario(usuario).data},
             status=status.HTTP_200_OK,
