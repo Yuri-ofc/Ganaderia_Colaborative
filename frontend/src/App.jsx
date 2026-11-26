@@ -10,7 +10,12 @@ import Membresias from './pages/Membresias';
 import Invitaciones from './pages/Invitaciones';
 import RbacAdmin from './pages/RbacAdmin';
 import OpcionPersonalizada from './pages/OpcionPersonalizada';
-import ModulePlaceholder from './pages/ModulePlaceholder';
+import Mediciones from './pages/Mediciones';
+import Pesajes from './pages/Pesajes';
+import Vision from './pages/Vision';
+import Sincronizacion from './pages/Sincronizacion';
+import Respaldos from './pages/Respaldos';
+import Exportaciones from './pages/Exportaciones';
 import DashboardLayout from './components/DashboardLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 import RoleRoute from './components/RoleRoute';
@@ -103,11 +108,29 @@ function App() {
             element={<ResourceRoute recurso="RBAC"><RbacAdmin /></ResourceRoute>}
           />
           <Route path="/opcion/:codigo" element={<OpcionPersonalizada />} />
-          <Route path="/vision" element={<ResourceRoute recurso="VCOM"><ModulePlaceholder recurso="VCOM" endpoint="/modules/vision/" title="Visión computacional" description="Estructura de captura y análisis preparada para el módulo de IA." extension="apps.vision" /></ResourceRoute>} />
-          <Route path="/sincronizacion" element={<ResourceRoute recurso="SYNC"><ModulePlaceholder recurso="SYNC" endpoint="/sync-changes/" title="Sincronización" description="Punto de integración para la cola offline y sus conflictos." extension="apps.sync" /></ResourceRoute>} />
-          <Route path="/respaldos" element={<ResourceRoute recurso="RESP"><ModulePlaceholder recurso="RESP" endpoint="/backups/" title="Respaldos" description="Punto de integración para copias verificadas de la finca." extension="apps.backups" /></ResourceRoute>} />
-          <Route path="/exportaciones" element={<ResourceRoute recurso="EXPO"><ModulePlaceholder recurso="EXPO" endpoint="/modules/exports/" title="Exportaciones" description="Contrato reservado para exportar datos sin exponer lógica todavía." extension="apps.backups.exports" /></ResourceRoute>} />
-          <Route path="/recuperacion" element={<ResourceRoute recurso="RECU"><ModulePlaceholder recurso="RECU" endpoint="/modules/recovery/" title="Recuperación" description="Contrato reservado para recuperar respaldos verificados." extension="apps.backups.recovery" /></ResourceRoute>} />
+          <Route
+            path="/mediciones"
+            element={
+              <RoleRoute rolesPermitidos={ROLES_TODOS} recurso="MEDI">
+                <Mediciones />
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="/pesajes"
+            element={
+              <RoleRoute rolesPermitidos={ROLES_TODOS} recurso="PESA">
+                <Pesajes />
+              </RoleRoute>
+            }
+          />
+          <Route path="/vision" element={<ResourceRoute recurso="VCOM"><Vision /></ResourceRoute>} />
+          <Route path="/sincronizacion" element={<ResourceRoute recurso="SYNC"><Sincronizacion /></ResourceRoute>} />
+          <Route path="/respaldos" element={<ResourceRoute recurso="RESP"><Respaldos /></ResourceRoute>} />
+          <Route path="/exportaciones" element={<ResourceRoute recurso="EXPO"><Exportaciones /></ResourceRoute>} />
+          {/* Restaurar vive dentro de Respaldos; la ruta anterior se conserva
+              para no romper enlaces guardados. */}
+          <Route path="/recuperacion" element={<Navigate to="/respaldos" replace />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

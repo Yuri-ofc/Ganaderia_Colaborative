@@ -1,6 +1,6 @@
 # G_Computacional — Ganadería de precisión
 
-**Versión actual: v1.1.0** · [Cambios](CHANGELOG.md) · [Cómo contribuir](CONTRIBUTING.md)
+**Versión actual: v1.2.0** · [Cambios](CHANGELOG.md) · [Cómo contribuir](CONTRIBUTING.md)
 
 ## ¿Qué hace el proyecto?
 
@@ -8,11 +8,13 @@ Sistema web para la gestión de fincas ganaderas. Permite:
 
 - Registrar **fincas**, **potreros** y **bovinos** (arete, raza, sexo, estado, movimientos).
 - Trabajar en equipo por finca con roles de **propietario**, **administrador** y **operario**, y **invitar** miembros con un código por finca.
-- Guardar **mediciones morfométricas** estimadas por visión artificial y **pesajes** reales (los registros no se editan: una corrección es un registro nuevo).
+- Guardar **mediciones morfométricas** y **pesajes** reales (los registros no se editan: una corrección es un registro nuevo enlazado al original).
+- Analizar una **captura de visión computacional** (foto o video) que genera una medición. La estimación es **simulada**, no sale de un modelo de IA entrenado, y queda marcada como tal en cada registro.
+- Resolver la **sincronización offline**: cola de cambios por dispositivo y resolución manual cuando dos dispositivos tocan el mismo objeto.
+- Generar **respaldos** por finca (cifrado opcional con Fernet, huella SHA-256 verificada antes de descargar o restaurar) y **restaurarlos**.
+- Descargar **exportaciones** en CSV o JSON para leer los datos fuera del sistema (no sirven para restaurar).
 - Administrar el **control de acceso (RBAC)**: roles, recursos del menú y etiquetas editables.
 - Consultar una **landing pública** en `/inicio`.
-
-Los módulos de visión computacional, sincronización offline, respaldos, exportaciones y recuperación tienen su estructura de API, pero su lógica aún está en preparación.
 
 El código, los modelos y las claves JSON de la API están en español.
 

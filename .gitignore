@@ -29,6 +29,11 @@ database/data/*
 !database/data/.gitkeep
 database/backups/*
 !database/backups/.gitkeep
+# Respaldos por finca: contienen datos reales, nunca se versionan.
+database/respaldos/
+
+# Capturas y descargas de las pruebas de interfaz en el navegador.
+.playwright-mcp/
 
 # Secretos y variables de entorno
 .env

@@ -1,3 +1,7 @@
+import shutil
+import tempfile
+from pathlib import Path
+
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
@@ -25,6 +29,17 @@ class PruebaApi(APITestCase):
     def setUp(self):
         super().setUp()
         cache.clear()
+        # Respaldos y capturas escriben archivos de verdad. Se redirigen a una
+        # carpeta temporal para que ninguna prueba deje basura en el repositorio
+        # (una prueba concreta puede volver a redirigirlos si necesita leerlos).
+        temporal = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, temporal, ignore_errors=True)
+        archivos = override_settings(
+            RESPALDOS_DIR=Path(temporal) / "respaldos",
+            MEDIA_ROOT=Path(temporal) / "media",
+        )
+        archivos.enable()
+        self.addCleanup(archivos.disable)
 
     def crear_usuario(self, nombre, *, clave=CLAVE, con_permisos_rbac=True, **extra):
         usuario = Usuario.objects.create_user(username=nombre, password=clave, **extra)
@@ -32,10 +47,10 @@ class PruebaApi(APITestCase):
         # RBAC. Se les da un rol de fixture con todos los recursos para que
         # continúen verificando esa capa. Las pruebas RBAC lo desactivan.
         if con_permisos_rbac:
+            from apps.rbac.constantes import RECURSOS
             from apps.rbac.models import Recurso, Rol, UsuarioHasRol
 
-            codigos = ("RBAC", "FINC", "MIEM", "INVT", "RAZA", "LOTE", "BOVI", "DISP", "MODI", "TIPO", "MEDI", "PESA", "RESP", "SYNC")
-            recursos = [Recurso.objects.get_or_create(nombre=codigo)[0] for codigo in codigos]
+            recursos = [Recurso.objects.get_or_create(nombre=codigo)[0] for codigo in RECURSOS]
             rol, _ = Rol.objects.get_or_create(Rol_nombre="TEST")
             rol.recursos.set(recursos)
             UsuarioHasRol.objects.get_or_create(usuario=usuario, rol=rol)

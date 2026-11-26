@@ -20,6 +20,12 @@ const paths = {
   check: <path d="M5 12l4 4 10-10" />,
   dash: <path d="M5 12h14" />,
   alert: <><path d="M12 3 2 20h20L12 3Z" /><path d="M12 10v4" /><circle cx="12" cy="17" r=".6" fill="currentColor" stroke="none" /></>,
+  chart: <><path d="M4 19V5" /><path d="M4 19h16" /><path d="m7 15 4-5 3 3 4-6" /></>,
+  scale: <><path d="M12 4v3" /><path d="M5 9h14l-2 8H7L5 9Z" /><path d="M9 4h6" /></>,
+  camera: <><path d="M4 8h3l1.5-2h7L17 8h3v11H4V8Z" /><circle cx="12" cy="13" r="3.2" /></>,
+  sync: <><path d="M20 12a8 8 0 0 1-13.6 5.7" /><path d="M4 12a8 8 0 0 1 13.6-5.7" /><path d="M17 3v4h-4" /><path d="M7 21v-4h4" /></>,
+  archive: <><rect x="3" y="4" width="18" height="4" rx="1" /><path d="M5 8v11h14V8" /><path d="M10 12h4" /></>,
+  download: <><path d="M12 4v10" /><path d="m8 11 4 4 4-4" /><path d="M5 19h14" /></>,
 };
 
 export default function Icon({ name, className = 'icon', title }) {

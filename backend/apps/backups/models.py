@@ -11,6 +11,9 @@ class Respaldo(ModeloBaseUuid):
         settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="respaldos"
     )
     url_almacenamiento = models.URLField()
+    # Ruta del archivo dentro de settings.RESPALDOS_DIR. Nunca sale al API:
+    # el cliente solo recibe la URL de descarga autenticada.
+    ruta_relativa = models.CharField(max_length=255, blank=True)
     suma_verificacion = models.CharField(max_length=128)
     tamano_bytes = models.PositiveBigIntegerField()
     version = models.CharField(max_length=50)

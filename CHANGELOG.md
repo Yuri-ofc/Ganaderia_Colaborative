@@ -2,6 +2,29 @@
 
 Todos los cambios importantes del proyecto se registran aquí. El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y el proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
+## [1.2.0] - 2026-11-25
+
+Versión **MINOR**: completa los cinco módulos que solo tenían contrato de API y agrega dos pantallas nuevas. Los endpoints anteriores no cambian de forma incompatible; los `modules/*` que devolvían «módulo en preparación» se reemplazan por rutas reales.
+
+### Agregado
+- **Respaldos**: generación de una copia por finca, cifrado opcional con Fernet (`BACKUP_ENCRYPTION_KEY`), huella SHA-256 calculada en el servidor, descarga y restauración completa dentro de una transacción. Nuevo `apps/backups/services.py` y acciones `download` y `restore`.
+- **Exportaciones**: endpoint `exports/` que arma CSV (uno o varios en ZIP) o JSON al vuelo con bovinos, mediciones, pesajes, potreros y equipo.
+- **Sincronización**: estados de la cola (`pendiente`, `sincronizado`, `conflicto`, `descartado`), detección de conflictos por `(finca, recurso, id_objeto)` y resolución manual reservada a propietario y administrador.
+- **Visión computacional**: app `apps.vision` con `CapturaVision` (foto o video) que genera una `Medicion`. La estimación es **simulada** (heurística por edad y sexo, modelo `simulado-v1`) y queda marcada como tal en la API y en la interfaz.
+- **Pantallas nuevas**: Mediciones, Pesajes, Visión, Sincronización, Respaldos y Exportaciones, con estados vacíos, validación en vivo del intervalo de confianza, gráfica de evolución en SVG sin dependencias nuevas y confirmación explícita antes de restaurar.
+- `frontend/src/services/apiError.js` para leer los errores de la API en un solo sitio.
+- Catálogo inicial de medición (`manual-v1` y tres tipos de medida) por migración de datos, para que un usuario sin permisos de staff pueda registrar mediciones.
+
+### Cambiado
+- `DEBUG` ahora vale `False` si no se configura; sin `DEBUG`, `SECRET_KEY`, `ALLOWED_HOSTS` y `CORS_ALLOWED_ORIGINS` son obligatorias y el servidor no arranca si faltan. `CORS_ALLOW_CREDENTIALS` pasa a `False` (deuda técnica DT-02).
+- El menú lateral incorpora Mediciones, Pesajes, Visión, Sincronización, Respaldos y Exportaciones; `/recuperacion` deja de ser una entrada propia y su acción vive dentro de Respaldos.
+- Las pruebas escriben respaldos y archivos subidos en un directorio temporal, nunca dentro del repositorio.
+
+### Corregido
+- Los roles y recursos del sistema ya no se pueden borrar ni renombrar, `SUPR` conserva siempre todos los recursos y nadie puede editar sus propios roles (deuda técnica DT-04).
+- Los campos de integridad de un respaldo (tamaño, huella y ruta) los calcula el servidor; el cliente ya no puede enviarlos.
+- `seed_rbac` completa las etiquetas que faltaban (`MEDI`, `PESA`, `LOTE`) y repara las que habían quedado guardadas con el propio código.
+
 ## [1.1.0] - 2026-11-23
 
 Versión **MINOR**: agrega una mejora compatible hacia atrás (componente `Modal` accesible) e incluye dos correcciones. No hay cambios incompatibles en la API, por lo que MAJOR no cambia. Como incluye funcionalidad nueva, no basta con un incremento PATCH.

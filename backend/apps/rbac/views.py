@@ -2,11 +2,13 @@ import re
 import unicodedata
 
 from django.contrib.auth import get_user_model
+from django.db import transaction
 from rest_framework import status, viewsets
 from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from .constantes import RECURSOS_SISTEMA, ROLES_SISTEMA
 from .models import Recurso, Rol, UsuarioHasRol
 from .serializers import (
     SerializerNuevoUsuario,
@@ -33,11 +35,61 @@ class VistaRoles(viewsets.ModelViewSet):
     serializer_class = SerializerRol
     recurso_requerido = "RBAC"
 
+    def perform_update(self, serializer):
+        """Los cuatro roles del catálogo conservan su código y SUPR sus recursos.
+
+        Repartir recursos entre PROP, ADMI y OPER es administración normal; en
+        cambio renombrarlos deja huérfanos los ``recurso_requerido`` de las
+        vistas, y recortarle recursos a SUPR deja el sistema sin nadie que
+        pueda repararlo.
+        """
+        rol = serializer.instance
+        if rol.Rol_nombre in ROLES_SISTEMA:
+            nombre_nuevo = serializer.validated_data.get("Rol_nombre", rol.Rol_nombre)
+            if nombre_nuevo != rol.Rol_nombre:
+                raise ValidationError(
+                    {"Rol_nombre": f"El rol {rol.Rol_nombre} es del sistema y no se puede renombrar."}
+                )
+            if rol.Rol_nombre == "SUPR" and "recursos" in serializer.validated_data:
+                raise ValidationError(
+                    {"recursos_ids": "El superadministrador conserva todos los accesos."}
+                )
+        serializer.save()
+
+    def perform_destroy(self, instancia):
+        if instancia.Rol_nombre in ROLES_SISTEMA:
+            raise ValidationError(
+                {"Rol_nombre": f"El rol {instancia.Rol_nombre} es del sistema y no se puede eliminar."}
+            )
+        instancia.delete()
+
 
 class VistaRecursos(viewsets.ModelViewSet):
     queryset = Recurso.objects.all()
     serializer_class = SerializerRecurso
     recurso_requerido = "RBAC"
+
+    def perform_update(self, serializer):
+        """La etiqueta visible se cambia siempre; el código base nunca.
+
+        El ``nombre`` es el código que valida el servidor en cada vista, así
+        que cambiarlo apagaría el módulo correspondiente para todos.
+        """
+        recurso = serializer.instance
+        if recurso.nombre in RECURSOS_SISTEMA:
+            nombre_nuevo = serializer.validated_data.get("nombre", recurso.nombre)
+            if nombre_nuevo != recurso.nombre:
+                raise ValidationError(
+                    {"nombre": f"El código {recurso.nombre} es del sistema; cambia solo su etiqueta."}
+                )
+        serializer.save()
+
+    def perform_destroy(self, instancia):
+        if instancia.nombre in RECURSOS_SISTEMA:
+            raise ValidationError(
+                {"nombre": f"El acceso {instancia.nombre} es del sistema y no se puede eliminar."}
+            )
+        instancia.delete()
 
 
 class VistaUsuariosRbac(APIView):
@@ -130,17 +182,27 @@ class VistaRolesUsuario(APIView):
 
     def put(self, solicitud, usuario_id):
         usuario = self._usuario(usuario_id)
+        # Nadie edita sus propios accesos: evita tanto quitarse SUPR y quedar
+        # fuera del panel como ampliarse permisos sin que lo revise un tercero.
+        if usuario.pk == solicitud.user.pk:
+            return Response(
+                {"roles_ids": "No puede modificar sus propios accesos; pídalo a otro superadministrador."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         roles_ids = solicitud.data.get("roles_ids")
         if not isinstance(roles_ids, list):
             return Response({"roles_ids": "Debe enviar una lista de identificadores."}, status=status.HTTP_400_BAD_REQUEST)
         roles = list(Rol.objects.filter(pk__in=roles_ids))
         if len(roles) != len(set(roles_ids)):
             return Response({"roles_ids": "Uno o más roles no existen."}, status=status.HTTP_400_BAD_REQUEST)
-        UsuarioHasRol.objects.filter(usuario=usuario).exclude(rol__in=roles).delete()
-        existentes = set(UsuarioHasRol.objects.filter(usuario=usuario).values_list("rol_id", flat=True))
-        UsuarioHasRol.objects.bulk_create(
-            [UsuarioHasRol(usuario=usuario, rol=rol) for rol in roles if rol.pk not in existentes]
-        )
+        # El borrado y el alta van juntos: si falla el alta, el usuario no se
+        # queda sin los roles que ya tenía.
+        with transaction.atomic():
+            UsuarioHasRol.objects.filter(usuario=usuario).exclude(rol__in=roles).delete()
+            existentes = set(UsuarioHasRol.objects.filter(usuario=usuario).values_list("rol_id", flat=True))
+            UsuarioHasRol.objects.bulk_create(
+                [UsuarioHasRol(usuario=usuario, rol=rol) for rol in roles if rol.pk not in existentes]
+            )
         roles, recursos = roles_y_recursos_usuario(usuario)
         usuario.roles_rbac = roles
         datos = SerializerUsuarioRbac(usuario).data

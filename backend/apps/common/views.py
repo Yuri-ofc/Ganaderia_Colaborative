@@ -63,10 +63,9 @@ class VistaRaizApi(APIView):
         ("morphometric-measurements", "morphometric-measurement-list"),
         ("scale-weighings", "scale-weighing-list"),
         ("backups", "backup-list"),
+        ("exports", "export-list"),
         ("sync-changes", "sync-change-list"),
-        ("vision-module", "module-vision"),
-        ("exports-module", "module-exports"),
-        ("recovery-module", "module-recovery"),
+        ("vision-captures", "vision-capture-list"),
     )
 
     def get(self, solicitud):

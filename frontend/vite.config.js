@@ -11,6 +11,12 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
       },
+      // Las capturas de visión se sirven desde MEDIA_ROOT del backend.
+      '/media': {
+        target: 'http://127.0.0.1:8000',
+        changeOrigin: true,
+        secure: false,
+      },
     },
   },
 });

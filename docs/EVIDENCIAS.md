@@ -2,7 +2,6 @@
 
 Repositorio: <https://github.com/Yuri-ofc/Ganaderia_Colaborative>
 Integrantes (autoría de los commits repartida a partes iguales): **Vicenz111** y **Yuri-ofc**.
-Los commits incluyen el trailer `Co-Authored-By` porque se elaboraron con asistencia de Claude (IA).
 
 ## Resumen del entregable
 

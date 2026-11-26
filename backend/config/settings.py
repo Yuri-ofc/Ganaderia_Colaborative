@@ -11,14 +11,21 @@ ENV_FILE = cargar_env(
     BASE_DIR / ".env",
 )
 
-DEBUG = leer_bool("DEBUG", True)
+# Sin configuración explícita se asume despliegue, no desarrollo: así un
+# servidor sin .env nunca arranca con páginas de depuración ni CORS abierto.
+DEBUG = leer_bool("DEBUG", False)
 
 if DEBUG:
     SECRET_KEY = leer_texto("SECRET_KEY", "django-insecure-solo-para-desarrollo-local")
 else:
     SECRET_KEY = leer_texto("SECRET_KEY")
 
-ALLOWED_HOSTS = leer_lista("ALLOWED_HOSTS", ["localhost", "127.0.0.1"] if DEBUG else [])
+if DEBUG:
+    ALLOWED_HOSTS = leer_lista("ALLOWED_HOSTS", ["localhost", "127.0.0.1"])
+else:
+    # Sin defecto: falla al iniciar con un mensaje claro en vez de rechazar
+    # cada petición después con DisallowedHost.
+    ALLOWED_HOSTS = leer_lista("ALLOWED_HOSTS")
 
 CSRF_TRUSTED_ORIGINS = leer_lista("CSRF_TRUSTED_ORIGINS", [])
 
@@ -39,6 +46,7 @@ INSTALLED_APPS = [
     'apps.farms',
     'apps.cattle',
     'apps.measurements',
+    'apps.vision',
     'apps.backups',
     'apps.sync',
 ]
@@ -155,14 +163,31 @@ API_TOKEN_TTL_DIAS = leer_entero('API_TOKEN_TTL_DIAS', 30)
 
 
 # --- CORS -------------------------------------------------------------------
-# En desarrollo se permiten todos los orígenes; en producción se usa la lista
-# definida en la variable de entorno CORS_ALLOWED_ORIGINS.
+# En desarrollo se permiten todos los orígenes; en producción la lista es
+# obligatoria y sin defecto, para que un despliegue sin configurar no quede
+# con el API inalcanzable en silencio.
 if DEBUG:
     CORS_ALLOW_ALL_ORIGINS = True
 else:
-    CORS_ALLOWED_ORIGINS = leer_lista('CORS_ALLOWED_ORIGINS', [])
-CORS_ALLOW_CREDENTIALS = True
+    CORS_ALLOWED_ORIGINS = leer_lista('CORS_ALLOWED_ORIGINS')
+# La autenticación viaja en la cabecera Authorization, no en cookies: permitir
+# credenciales de origen cruzado no aporta nada y amplía la superficie.
+CORS_ALLOW_CREDENTIALS = False
 
+
+# --- Respaldos --------------------------------------------------------------
+# Carpeta donde se escriben los archivos de respaldo por finca y clave Fernet
+# con la que se cifran. Sin clave configurada, el respaldo cifrado se rechaza
+# con un error explícito en vez de guardarse en texto plano.
+RESPALDOS_DIR = leer_ruta('BACKUPS_STORAGE_DIR', DATABASE_DIR / 'respaldos', relativa_a=PROJECT_ROOT)
+RESPALDO_CLAVE_CIFRADO = leer_texto('BACKUP_ENCRYPTION_KEY', '')
+
+# --- Visión computacional ---------------------------------------------------
+# Rango en kilogramos que usa la estimación simulada cuando el bovino no tiene
+# fecha de nacimiento registrada. Ver apps/vision/services.py.
+VISION_PESO_MIN_KG = leer_entero('VISION_PESO_MIN_KG', 150)
+VISION_PESO_MAX_KG = leer_entero('VISION_PESO_MAX_KG', 550)
+VISION_TAMANO_MAXIMO_MB = leer_entero('VISION_TAMANO_MAXIMO_MB', 50)
 
 EMAIL_BACKEND = leer_texto('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
 EMAIL_HOST = leer_texto('EMAIL_HOST', '')

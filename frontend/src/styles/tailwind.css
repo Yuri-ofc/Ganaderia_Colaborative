@@ -224,3 +224,123 @@
 .rbac-advanced .rbac-inline-form input { min-width:110px; }
 @media (max-width: 860px) { .rbac-layout-options { grid-template-columns:1fr; } }
 @media (max-width: 560px) { .rbac-tabs { grid-template-columns:1fr; } .rbac-tab small { display:none; } }
+
+/* Módulos de datos: mediciones, pesajes, visión, sincronización, respaldos.
+   Reutilizan la misma paleta y el mismo trazo que el resto del panel. */
+.panel { border:1px solid var(--rule); border-radius:8px; background:#fff; padding:20px; }
+.panel + .panel { margin-top:20px; }
+.panel-head { display:flex; align-items:end; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:14px; }
+.panel-head p { margin-top:4px; color:var(--muted); font-size:13px; line-height:1.45; }
+.panel-soft { background:#fafcf9; }
+
+.filter-bar { display:flex; flex-wrap:wrap; align-items:end; gap:12px; margin-bottom:18px; }
+.filter-bar label { display:grid; gap:6px; color:var(--muted); font-size:12px; font-weight:600; }
+.filter-bar select,.filter-bar input { min-height:36px; min-width:180px; padding:0 10px; border:1px solid #d7dfd5; border-radius:6px; font-size:13px; font-weight:400; color:var(--ink); }
+.filter-bar .button { min-height:36px; }
+
+.data-table { width:100%; border-collapse:collapse; }
+.data-table th { padding:9px 10px; border-bottom:1px solid var(--rule); color:var(--muted); font-size:12px; font-weight:600; text-align:left; white-space:nowrap; }
+.data-table td { padding:11px 10px; border-bottom:1px solid var(--rule); font-size:13px; vertical-align:top; }
+.data-table tbody tr:hover { background:#f7faf6; }
+.data-table .is-numeric { text-align:right; font-variant-numeric:tabular-nums; }
+.data-table strong { font-weight:600; }
+.data-table small { display:block; margin-top:3px; color:var(--muted); font-size:11px; line-height:1.35; }
+.table-scroll { overflow-x:auto; }
+.table-actions { display:flex; justify-content:flex-end; gap:8px; white-space:nowrap; }
+.link-button { border:0; padding:0; background:transparent; color:var(--forest-800); font-size:12px; font-weight:600; }
+.link-button:hover { text-decoration:underline; }
+.link-button.is-danger { color:#8b2929; }
+
+.badge { display:inline-block; padding:3px 8px; border-radius:999px; font-size:11px; font-weight:600; white-space:nowrap; }
+.badge-ok { color:#285334; background:#e4f0e1; }
+.badge-warn { color:#8a5a12; background:#fdf1dc; }
+.badge-danger { color:#8b2929; background:#fff2f1; }
+.badge-muted { color:#58645a; background:#eef1ee; }
+
+.notice { display:flex; gap:10px; padding:12px 14px; border-radius:8px; font-size:13px; line-height:1.5; }
+.notice .icon { flex:0 0 auto; margin-top:1px; }
+.notice strong { display:block; font-weight:700; }
+.notice-warn { color:#6f4a0f; background:#fdf6e8; border:1px solid #f2e0bd; }
+.notice-info { color:#2d4a33; background:#f1f7ef; border:1px solid #d9e8d5; }
+.notice-danger { color:#8b2929; background:#fff2f1; border:1px solid #f3d4d1; }
+.notice + .panel,.notice + .filter-bar { margin-top:18px; }
+
+.trend-chart { display:block; width:100%; height:auto; }
+.trend-chart .trend-area { fill:rgba(76,130,78,.13); }
+.trend-chart .trend-line { fill:none; stroke:var(--forest-700); stroke-width:2; stroke-linejoin:round; stroke-linecap:round; }
+.trend-chart .trend-point { fill:var(--forest-800); }
+.trend-chart .trend-grid { stroke:var(--rule); stroke-width:1; }
+.trend-chart .trend-axis { fill:var(--muted); font-size:10px; }
+.trend-legend { display:flex; flex-wrap:wrap; gap:16px; margin-top:10px; color:var(--muted); font-size:12px; }
+.trend-legend b { color:var(--ink); font-variant-numeric:tabular-nums; }
+
+.modal-form { display:grid; gap:14px; }
+.modal-form label { display:grid; gap:6px; color:#344839; font-size:12px; font-weight:600; }
+.modal-form label span { color:#89958b; font-weight:400; }
+.modal-form input,.modal-form select,.modal-form textarea { min-height:38px; padding:8px 10px; border:1px solid #d7dfd5; border-radius:6px; font-size:13px; font-weight:400; }
+.modal-form .form-grid { gap:12px; }
+.modal-form-actions { display:flex; gap:10px; margin-top:4px; }
+.modal-form-actions .button { flex:1; min-height:40px; }
+.modal-form-actions .button-ghost { border:1px solid #d7dfd5; background:#fff; color:var(--muted); }
+.modal-form-actions .button-danger { background:#8b2929; color:#fff; }
+.modal-form-actions .button-danger:hover { background:#731f1f; }
+/* Con `label.` para ganarle en especificidad a `.modal-form label`, que la
+   pondría en columna y dejaría la casilla encima del texto. */
+label.modal-confirm { display:flex; align-items:start; gap:9px; padding:12px; border:1px solid #f2e0bd; border-radius:6px; background:#fdf6e8; color:#6f4a0f; font-size:12px; font-weight:500; line-height:1.45; }
+.modal-confirm input { width:16px; height:16px; min-height:unset; margin:1px 0 0; accent-color:#8b2929; }
+
+.measure-rows { display:grid; gap:8px; }
+.measure-row { display:grid; grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) 32px; gap:8px; align-items:center; }
+.measure-row .icon-button:hover { color:#8b2929; background:#fff2f1; }
+
+label.dropzone { display:grid; justify-items:center; gap:8px; padding:26px; border:1px dashed #c3d2c0; border-radius:8px; background:#fafcf9; color:var(--muted); font-size:13px; font-weight:400; text-align:center; cursor:pointer; transition:border-color .15s ease, background .15s ease; }
+label.dropzone:hover { border-color:var(--forest-600); background:#f4f8f2; }
+.dropzone.is-loaded { border-style:solid; border-color:var(--forest-600); background:#f1f7ef; }
+/* El input nativo se oculta sin perder el foco de teclado: la etiqueta entera
+   abre el selector de archivos. */
+.dropzone input[type=file] { position:absolute; width:1px; height:1px; min-height:0; padding:0; border:0; opacity:0; }
+.dropzone:focus-within { border-color:var(--forest-700); box-shadow:0 0 0 3px rgba(45,90,54,.12); }
+.dropzone-action { padding:7px 14px; border:1px solid var(--forest-700); border-radius:6px; color:var(--forest-700); font-size:12px; font-weight:600; }
+.dropzone p { margin:0; word-break:break-word; }
+.dropzone img { max-height:180px; border-radius:6px; }
+.vision-result { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:1px; border:1px solid var(--rule); border-radius:8px; overflow:hidden; background:var(--rule); margin-top:16px; }
+.vision-result > div { padding:14px 16px; background:#fff; }
+.vision-result span { display:block; color:var(--muted); font-size:12px; }
+.vision-result strong { display:block; margin-top:4px; font-size:22px; font-weight:500; letter-spacing:-.03em; font-variant-numeric:tabular-nums; }
+.vision-result small { display:block; margin-top:3px; color:#7e8980; font-size:11px; }
+
+.conflict-card { border:1px solid #f2e0bd; border-radius:8px; background:#fffdf8; padding:16px; }
+.conflict-card + .conflict-card { margin-top:14px; }
+.conflict-card header { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-bottom:12px; }
+.conflict-card header strong { font-size:14px; }
+.conflict-card header code { color:var(--muted); font-family:'IBM Plex Mono', monospace; font-size:11px; }
+.conflict-options { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:12px; }
+/* Columna flexible para que el botón quede abajo en todas las tarjetas: solo
+   una lleva la insignia de "más reciente" y si no se alinean cuesta comparar. */
+.conflict-option { display:flex; flex-direction:column; gap:8px; padding:13px; border:1px solid var(--rule); border-radius:6px; background:#fff; }
+.conflict-option .button { margin-top:auto; }
+.conflict-option dl { display:grid; gap:4px; margin:0; color:var(--muted); font-size:12px; }
+.conflict-option dl > div { display:flex; justify-content:space-between; gap:10px; }
+.conflict-option dd { margin:0; color:var(--ink); font-weight:600; }
+.conflict-option pre { max-height:120px; overflow:auto; margin:0; padding:9px; border-radius:5px; background:#f5f8f4; color:#36453a; font-family:'IBM Plex Mono', monospace; font-size:11px; line-height:1.45; }
+.conflict-option .button { min-height:34px; }
+
+@media (max-width: 760px) {
+  .panel { padding:16px; }
+  .filter-bar select,.filter-bar input { min-width:0; width:100%; }
+  .filter-bar label { flex:1 1 140px; }
+  .measure-row { grid-template-columns:minmax(0,1fr) minmax(0,1fr) 30px; }
+}
+
+/* Casilla con su texto al lado, fuera del formulario de acceso (la regla de
+   .auth-form no alcanza aquí y el login se deja tal como está). */
+label.checkbox-row { display:flex; align-items:center; gap:8px; font-size:13px; color:var(--ink); font-weight:500; cursor:pointer; }
+.checkbox-row input[type=checkbox] { width:15px; height:15px; min-height:unset; accent-color:var(--forest-700); cursor:pointer; margin:0; padding:0; flex:none; }
+
+/* Fichas de detalle y textos de ayuda reutilizados por los módulos nuevos. */
+.detail-list { display:grid; gap:6px; margin:0; }
+.detail-list > div { display:flex; justify-content:space-between; gap:12px; padding-bottom:6px; border-bottom:1px solid var(--rule); }
+.detail-list dt { color:var(--muted); font-size:12px; }
+.detail-list dd { margin:0; font-size:13px; font-weight:600; text-align:right; }
+.hint { margin-top:6px; color:var(--muted); font-size:12px; line-height:1.45; }
+.link-button.is-spaced { margin-top:8px; }
