@@ -175,8 +175,8 @@ class PruebasPoliticaEfectivaRbac(PruebaApi):
         self.assertEqual(self.client.get(reverse("breed-list")).status_code, status.HTTP_200_OK)
         self.assertEqual(self.client.get(reverse("invitation-list")).status_code, status.HTTP_403_FORBIDDEN)
         self.assertEqual(self.client.get(reverse("backup-list")).status_code, status.HTTP_403_FORBIDDEN)
-        self.assertEqual(self.client.get(reverse("module-exports")).status_code, status.HTTP_403_FORBIDDEN)
-        self.assertEqual(self.client.get(reverse("module-vision")).status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(self.client.get(reverse("export-list")).status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(self.client.get(reverse("vision-capture-list")).status_code, status.HTTP_403_FORBIDDEN)
 
     def test_operario_no_puede_modificar_una_finca_ni_bovino_existente(self):
         from apps.cattle.models import Bovino, Potrero, Raza
@@ -198,10 +198,16 @@ class PruebasPoliticaEfectivaRbac(PruebaApi):
         self.assertEqual(self.finca.nombre, "Finca auditada")
         self.assertEqual(bovino.arete, "OP-01")
 
-    def test_propietario_no_recibe_modulo_pendiente_de_vision(self):
+    def test_propietario_exporta_pero_no_entra_a_vision(self):
         self.autenticar(self.propietaria)
-        self.assertEqual(self.client.get(reverse("module-vision")).status_code, status.HTTP_403_FORBIDDEN)
-        self.assertEqual(self.client.get(reverse("module-exports")).status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            self.client.get(reverse("vision-capture-list")).status_code, status.HTTP_403_FORBIDDEN
+        )
+        exportacion = self.client.get(
+            reverse("export-list"), {"finca": str(self.finca.pk), "incluir": "bovinos"}
+        )
+        self.assertEqual(exportacion.status_code, status.HTTP_200_OK)
+        self.assertIn("attachment", exportacion["Content-Disposition"])
 
     def test_asignar_supr_actualiza_dashboard_y_recursos(self):
         # Se ejerce el mismo endpoint que usa el panel; la segunda petición
@@ -223,3 +229,77 @@ class PruebasPoliticaEfectivaRbac(PruebaApi):
         self.assertEqual(fincas.status_code, status.HTTP_200_OK)
         self.assertEqual(fincas.json()["count"], 1)
         self.assertEqual(fincas.json()["results"][0]["mi_rol"], "superadmin")
+
+
+class PruebasProteccionCatalogoRbac(PruebaApi):
+    """El catálogo base no se puede romper desde el propio panel (DT-04)."""
+
+    def setUp(self):
+        super().setUp()
+        call_command("seed_rbac", verbosity=0)
+        self.auditor = self.crear_usuario("auditor_catalogo", con_permisos_rbac=False)
+        UsuarioHasRol.objects.create(usuario=self.auditor, rol=Rol.objects.get(Rol_nombre="SUPR"))
+        self.autenticar(self.auditor)
+
+    def test_no_se_elimina_un_rol_del_sistema(self):
+        rol = Rol.objects.get(Rol_nombre="SUPR")
+        respuesta = self.client.delete(reverse("rbac-role-detail", kwargs={"pk": rol.pk}))
+        self.assertEqual(respuesta.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertTrue(Rol.objects.filter(Rol_nombre="SUPR").exists())
+
+    def test_no_se_renombra_un_rol_del_sistema(self):
+        rol = Rol.objects.get(Rol_nombre="PROP")
+        respuesta = self.client.patch(
+            reverse("rbac-role-detail", kwargs={"pk": rol.pk}), {"Rol_nombre": "XXXX"}, format="json"
+        )
+        self.assertEqual(respuesta.status_code, status.HTTP_400_BAD_REQUEST)
+        rol.refresh_from_db()
+        self.assertEqual(rol.Rol_nombre, "PROP")
+
+    def test_los_recursos_de_un_rol_operativo_siguen_siendo_administrables(self):
+        rol = Rol.objects.get(Rol_nombre="ADMI")
+        recurso = Recurso.objects.get(nombre="BOVI")
+        respuesta = self.client.patch(
+            reverse("rbac-role-detail", kwargs={"pk": rol.pk}),
+            {"recursos_ids": [recurso.idrecurso]}, format="json",
+        )
+        self.assertEqual(respuesta.status_code, status.HTTP_200_OK)
+        self.assertEqual(list(rol.recursos.values_list("nombre", flat=True)), ["BOVI"])
+
+    def test_el_superadministrador_conserva_todos_sus_recursos(self):
+        rol = Rol.objects.get(Rol_nombre="SUPR")
+        total = rol.recursos.count()
+        respuesta = self.client.patch(
+            reverse("rbac-role-detail", kwargs={"pk": rol.pk}),
+            {"recursos_ids": [Recurso.objects.get(nombre="BOVI").idrecurso]}, format="json",
+        )
+        self.assertEqual(respuesta.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(rol.recursos.count(), total)
+
+    def test_no_se_elimina_ni_renombra_un_recurso_del_sistema_pero_si_su_etiqueta(self):
+        recurso = Recurso.objects.get(nombre="RBAC")
+        url = reverse("rbac-resource-detail", kwargs={"pk": recurso.pk})
+        self.assertEqual(self.client.delete(url).status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            self.client.patch(url, {"nombre": "ZZZZ"}, format="json").status_code,
+            status.HTTP_400_BAD_REQUEST,
+        )
+        etiquetado = self.client.patch(url, {"etiqueta": "Permisos"}, format="json")
+        self.assertEqual(etiquetado.status_code, status.HTTP_200_OK)
+        recurso.refresh_from_db()
+        self.assertEqual(recurso.nombre, "RBAC")
+        self.assertEqual(recurso.etiqueta, "Permisos")
+
+    def test_un_rol_propio_del_administrador_si_se_elimina(self):
+        rol = Rol.objects.create(Rol_nombre="AUDI")
+        respuesta = self.client.delete(reverse("rbac-role-detail", kwargs={"pk": rol.pk}))
+        self.assertEqual(respuesta.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(Rol.objects.filter(Rol_nombre="AUDI").exists())
+
+    def test_nadie_edita_sus_propios_accesos(self):
+        respuesta = self.client.put(
+            reverse("rbac-user-roles", kwargs={"usuario_id": self.auditor.pk}),
+            {"roles_ids": []}, format="json",
+        )
+        self.assertEqual(respuesta.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertTrue(UsuarioHasRol.objects.filter(usuario=self.auditor).exists())

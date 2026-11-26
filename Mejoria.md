@@ -22,7 +22,7 @@ Se revisaron `frontend/src/pages/Login.jsx`, `frontend/src/styles/tailwind.css`,
 
 - Tipografía principal: `DM Sans`.
 - Paleta dominante: verdes bosque/campo, con variables como `--forest-950: #102817`, `--forest-800: #285334`, `--forest-100: #e7f0e5`, fondo `--frame: #edf3eb` y texto `--ink: #183020`.
-- Estilo: superficies claras, botones verdes sólidos, bordes y radios discretos, iconos lineales, jerarquía tipográfica limpia y módulos de interfaz sobrios.
+- Estilo: superficies claras, botones verdess sólidos, bordes y radios discretos, iconos lineales, jerarquía tipográfica limpia y módulos de interfaz sobrios.
 - Activos disponibles: `frontend/public/fondo-clean.jpg` (paisaje) y `frontend/public/logo.jpeg`.
 - El login establece como mensajes de marca «Gestión ganadera de precisión» y «Tu finca, en orden».
 

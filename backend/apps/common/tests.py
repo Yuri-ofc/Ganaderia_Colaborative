@@ -60,7 +60,7 @@ class PruebasRaizApi(PruebaApi):
         self.assertIn("farms", cuerpo["endpoints"])
         self.assertTrue(cuerpo["endpoints"]["measurements"].endswith("/api/v1/measurements/"))
         self.assertTrue(cuerpo["endpoints"]["token"].endswith("/api/v1/auth/token/"))
-        self.assertEqual(len(cuerpo["endpoints"]), 21)
+        self.assertEqual(len(cuerpo["endpoints"]), 20)
 
 
 @override_settings(PASSWORD_HASHERS=["django.contrib.auth.hashers.MD5PasswordHasher"])

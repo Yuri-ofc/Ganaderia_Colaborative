@@ -45,8 +45,16 @@ Revisión del repositorio realizada sobre la línea base **v1.0.0** (fecha: 2026
 | --- | --- | --- |
 | DT-01 | **Corregida** | Issue [#9](https://github.com/Yuri-ofc/Ganaderia_Colaborative/issues/9), PR [#15](https://github.com/Yuri-ofc/Ganaderia_Colaborative/pull/15): `components/Modal.jsx` único y accesible |
 | DT-09 | **Corregida** | Issue [#16](https://github.com/Yuri-ofc/Ganaderia_Colaborative/issues/16), PR [#17](https://github.com/Yuri-ofc/Ganaderia_Colaborative/pull/17): README, `CONTRIBUTING.md`, `CHANGELOG.md`, plantillas y `docs/` |
-| DT-02 | Pendiente | Issue [#11](https://github.com/Yuri-ofc/Ganaderia_Colaborative/issues/11) |
 | DT-03 | Pendiente | Issue [#12](https://github.com/Yuri-ofc/Ganaderia_Colaborative/issues/12) |
-| DT-04, DT-05, DT-06, DT-07, DT-08, DT-10 | Pendientes | Aún sin issue; ver «Mejoras pendientes» en `docs/EVIDENCIAS.md` |
+| DT-05, DT-07, DT-08 | Pendientes | Aún sin issue; ver «Mejoras pendientes» en `docs/EVIDENCIAS.md` |
+
+## Estado tras completar los módulos pendientes
+
+| ID | Estado | Cómo |
+| --- | --- | --- |
+| DT-02 | **Corregida** | `config/settings.py`: `DEBUG` por defecto `False`; sin `DEBUG`, `SECRET_KEY`, `ALLOWED_HOSTS` y `CORS_ALLOWED_ORIGINS` son obligatorias y el arranque falla si faltan; `CORS_ALLOW_CREDENTIALS = False` |
+| DT-04 | **Corregida** | `apps/rbac/constantes.py` más los bloqueos en `apps/rbac/views.py`: no se borran ni renombran los roles y recursos del sistema, `SUPR` conserva siempre todos los recursos y nadie edita sus propios roles. Cubierto por `PruebasProteccionCatalogoRbac` (7 pruebas) |
+| DT-06 | **Parcial** | `frontend/src/services/apiError.js` centraliza el parseo de errores de la API y lo usan las seis pantallas nuevas; las cinco copias antiguas (`Fincas`, `Invitaciones`, `Bovinos`, `Membresias`, `RbacAdmin`) siguen sin migrar |
+| DT-10 | **Parcial** | `apps/common/testing.py` ya toma los códigos de `apps.rbac.constantes` en vez de la lista obsoleta; siguen pendientes el `login` sin uso de `authService.js` y el alias `tiene_recurso` |
 
 Además se corrigieron dos errores detectados durante la revisión: el token vencido en el login (#8, PR #13) y la zona horaria de la expiración de invitaciones (#10, PR #14).

@@ -1,8 +1,11 @@
+from django.urls import path
 from rest_framework.routers import SimpleRouter
 
-from .views import VistaRespaldos
+from .views import VistaExportaciones, VistaRespaldos
 
 router = SimpleRouter()
 router.register("backups", VistaRespaldos, basename="backup")
 
-urlpatterns = router.urls
+urlpatterns = router.urls + [
+    path("exports/", VistaExportaciones.as_view(), name="export-list"),
+]

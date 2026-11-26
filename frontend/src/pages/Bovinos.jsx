@@ -23,6 +23,9 @@ const estadoBadge = {
 
 const sexoLabel = { macho: 'Macho', hembra: 'Hembra' };
 
+const CATEGORIAS_PRODUCTIVAS = ['Cría', 'Levante', 'Ceba', 'Vaca de leche', 'Doble propósito'];
+const ESTADOS_FISIOLOGICOS = ['Vacía', 'Preñada', 'Lactante', 'En servicio', 'Seca'];
+
 const formVacio = {
   arete: '', raza: '', sexo: 'hembra', potrero: '',
   categoria_productiva: '', estado_fisiologico: '', fecha_nacimiento_estimada: '',
@@ -352,24 +355,28 @@ export default function Bovinos() {
             </div>
             <div>
               <label className="block text-sm font-semibold text-campo-800 mb-1">Categoría productiva</label>
-              <input
-                type="text" required placeholder="ej: Cría, Levante, Ceba, Lechería"
-                value={form.categoria_productiva}
+              <select
+                required value={form.categoria_productiva}
                 onChange={(e) => setForm({ ...form, categoria_productiva: e.target.value })}
-                className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-campo-500 focus:border-campo-500 outline-none transition text-sm"
-              />
+                className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-campo-500 outline-none text-sm"
+              >
+                <option value="" disabled>Selecciona…</option>
+                {CATEGORIAS_PRODUCTIVAS.map((cat) => <option key={cat} value={cat}>{cat}</option>)}
+              </select>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-sm font-semibold text-campo-800 mb-1">
                   Estado fisiológico <span className="text-gray-400 font-normal">(opcional)</span>
                 </label>
-                <input
-                  type="text" placeholder="ej: Gestante, Lactando"
+                <select
                   value={form.estado_fisiologico}
                   onChange={(e) => setForm({ ...form, estado_fisiologico: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-campo-500 focus:border-campo-500 outline-none transition text-sm"
-                />
+                  className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-campo-500 outline-none text-sm"
+                >
+                  <option value="">Sin estado</option>
+                  {ESTADOS_FISIOLOGICOS.map((est) => <option key={est} value={est}>{est}</option>)}
+                </select>
               </div>
               <div>
                 <label className="block text-sm font-semibold text-campo-800 mb-1">

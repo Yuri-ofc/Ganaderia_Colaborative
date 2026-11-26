@@ -16,7 +16,10 @@ class AyudasMediciones:
         super().setUp()
         self.raza = Raza.objects.create(nombre="Brahman")
         self.modelo_ia = ModeloIa.objects.create(version="1.0", calibracion="base", activo=True)
-        self.tipo_medida = TipoMedida.objects.create(nombre="Perímetro torácico", unidad="cm")
+        # El tipo ya viene en el catálogo inicial de la migración de datos.
+        self.tipo_medida, _ = TipoMedida.objects.get_or_create(
+            nombre="Perímetro torácico", defaults={"unidad": "cm"}
+        )
 
         self.propietaria = self.crear_usuario("propietaria")
         self.operaria = self.crear_usuario("operaria")

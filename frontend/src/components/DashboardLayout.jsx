@@ -16,16 +16,20 @@ const rutaResumenPorRol = {
 // El menú es una proyección de los recursos efectivos que entrega el backend.
 // rolFinca solo restringe acciones cuyo contexto lo exige; nunca sustituye la
 // validación del servidor.
+// Recuperación no tiene entrada propia: su acción vive dentro de Respaldos,
+// donde está el archivo que se va a restaurar (el servidor sigue exigiendo el
+// recurso RECU para ejecutarla).
 const itemsSecundarios = [
   { to: '/fincas', label: 'Fincas', icon: 'farm', recurso: 'FINC', bootstrap: true },
   { to: '/bovinos', label: 'Bovinos', icon: 'cattle', recurso: 'BOVI' },
+  { to: '/mediciones', label: 'Mediciones', icon: 'chart', recurso: 'MEDI' },
+  { to: '/pesajes', label: 'Pesajes', icon: 'scale', recurso: 'PESA' },
+  { to: '/vision', label: 'Visión computacional', icon: 'camera', recurso: 'VCOM' },
   { to: '/miembros', label: 'Equipo', icon: 'people', recurso: 'MIEM', rolesFinca: ['propietario', 'administrador'] },
   { to: '/invitaciones', label: 'Invitaciones', icon: 'mail', recurso: 'INVT', rolesFinca: ['propietario', 'administrador'] },
-  { to: '/vision', label: 'Visión computacional', icon: 'grid', recurso: 'VCOM' },
-  { to: '/sincronizacion', label: 'Sincronización', icon: 'grid', recurso: 'SYNC' },
-  { to: '/respaldos', label: 'Respaldos', icon: 'grid', recurso: 'RESP' },
-  { to: '/exportaciones', label: 'Exportaciones', icon: 'grid', recurso: 'EXPO' },
-  { to: '/recuperacion', label: 'Recuperación', icon: 'grid', recurso: 'RECU' },
+  { to: '/sincronizacion', label: 'Sincronización', icon: 'sync', recurso: 'SYNC' },
+  { to: '/respaldos', label: 'Respaldos', icon: 'archive', recurso: 'RESP' },
+  { to: '/exportaciones', label: 'Exportaciones', icon: 'download', recurso: 'EXPO' },
 ];
 
 export default function DashboardLayout() {

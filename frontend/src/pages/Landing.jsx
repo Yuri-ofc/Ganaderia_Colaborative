@@ -107,14 +107,15 @@ const FUNCIONES = [
   {
     icon: <IconMedida />,
     title: 'Mediciones y pesajes',
-    text: 'Guarda el peso estimado por visión artificial con su intervalo de confianza y compáralo con la báscula.',
-    estado: 'Módulo en preparación',
+    text: 'Guarda el peso estimado con su intervalo de confianza y compáralo con el de la báscula.',
+    // La estimación por captura todavía es una simulación, no un modelo
+    // entrenado: la etiqueta lo dice en lugar de prometer IA real.
+    estado: 'Visión en modo simulado',
   },
   {
     icon: <IconOffline />,
     title: 'Offline y respaldos',
     text: 'Trabaja sin señal en el potrero: los cambios se sincronizan por dispositivo y los respaldos se verifican.',
-    estado: 'Módulo en preparación',
   },
 ];
 

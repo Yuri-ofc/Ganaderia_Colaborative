@@ -8,7 +8,11 @@
 Django==6.1.2
 djangorestframework==3.18.3
 django-cors-headers==4.7.0
+# Cifrado Fernet de los archivos de respaldo (apps/backups/services.py).
+cryptography==50.0.2
 
 # Transitivas (fijadas para builds reproducibles)
 asgiref==3.12.1
 sqlparse==0.6.0
+cffi==2.1.1
+pycparser==3.12

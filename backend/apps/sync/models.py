@@ -12,6 +12,12 @@ class CambioSincronizacion(ModeloBaseUuid):
         ACTUALIZAR = "actualizar", "Actualizar"
         ELIMINAR = "eliminar", "Eliminar"
 
+    class Estado(models.TextChoices):
+        PENDIENTE = "pendiente", "Pendiente"
+        SINCRONIZADO = "sincronizado", "Sincronizado"
+        CONFLICTO = "conflicto", "En conflicto"
+        DESCARTADO = "descartado", "Descartado"
+
     finca = models.ForeignKey(Finca, on_delete=models.CASCADE, related_name="cambios_sincronizacion")
     dispositivo = models.ForeignKey(
         Dispositivo, on_delete=models.PROTECT, related_name="cambios_sincronizacion"
@@ -25,6 +31,15 @@ class CambioSincronizacion(ModeloBaseUuid):
     accion = models.CharField(max_length=10, choices=Accion.choices)
     contenido = models.JSONField(default=dict)
     sincronizado_en = models.DateTimeField(null=True, blank=True)
+    estado = models.CharField(max_length=20, choices=Estado.choices, default=Estado.PENDIENTE)
+    resuelto_por = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="conflictos_resueltos",
+    )
+    resuelto_en = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         constraints = [
